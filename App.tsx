@@ -1,20 +1,26 @@
+import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Provider as PaperProvider } from 'react-native-paper';
+import { Navigation } from './src/app/Navigation';
+import { theme } from './src/core/theme';
+import { usePushNotification } from './src/features/notifications/hooks/usePushNotification';
+
+// Component to handle global hook logic
+const AppContent = () => {
+  // Initialize Push Notifications (Listeners + Token)
+  usePushNotification();
+
+  return <Navigation />;
+};
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaProvider>
+      <PaperProvider theme={theme}>
+        <AppContent />
+        <StatusBar style="auto" />
+      </PaperProvider>
+    </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
