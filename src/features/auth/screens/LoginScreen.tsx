@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, LoginCredentials } from '../authTypes';
 import { useAuthStore } from '../store/useAuthStore';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { getAuth } from 'firebase/auth';
 
 export const LoginScreen = ({ navigation }: any) => {
   const login = useAuthStore((state) => state.login);
@@ -17,18 +18,40 @@ export const LoginScreen = ({ navigation }: any) => {
   });
 
   const onSubmit = async (data: LoginCredentials) => {
+    console.log("🟢 [DEBUG] onSubmit fonksiyonuna girildi. Veriler:", data);
+
     setError(null);
     try {
+      console.log("🟡 [DEBUG] useAuthStore.login çağrılıyor...");
       await login(data);
+      console.log("✅ [DEBUG] Login işlemi tamamlandı.");
+
+      const auth = getAuth();
+      const user = auth.currentUser;
+      if (user) {
+        const token = await user.getIdToken();
+        console.log("\n🔥🔥🔥 BACKEND TEST TOKEN 🔥🔥🔥");
+        console.log(token);
+        console.log("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥\n");
+      } else {
+        console.log("⚠️ [DEBUG] User objesi null geldi.");
+      }
+
     } catch (err: any) {
+      console.error("🔴 [DEBUG] HATA OLUŞTU:", err);
+      console.log("🔴 [DEBUG] Hata Detayı:", JSON.stringify(err, null, 2));
       setError(err.message || 'Login failed');
     }
+  };
+
+  const onError = (errors: any) => {
+    console.log("⛔ [DEBUG] Form Validasyon Hatası:", errors);
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <Text variant="headlineMedium" style={styles.title}>Welcome Back</Text>
-      
+
       <View style={styles.form}>
         <Controller
           control={control}
@@ -73,9 +96,9 @@ export const LoginScreen = ({ navigation }: any) => {
           </HelperText>
         )}
 
-        <Button 
-          mode="contained" 
-          onPress={handleSubmit(onSubmit)} 
+        <Button
+          mode="contained"
+          onPress={handleSubmit(onSubmit, onError)}
           loading={isLoading}
           disabled={isLoading}
           style={styles.button}
@@ -83,8 +106,8 @@ export const LoginScreen = ({ navigation }: any) => {
           Login
         </Button>
 
-        <Button 
-          mode="text" 
+        <Button
+          mode="text"
           onPress={() => navigation.navigate('Register')}
           style={styles.link}
         >

@@ -7,15 +7,23 @@ import { RegisterScreen } from '../features/auth/screens/RegisterScreen';
 import { NotificationListScreen } from '../features/notifications/screens/NotificationListScreen';
 import { CreateNotificationScreen } from '../features/notifications/screens/CreateNotificationScreen';
 import { ActivityIndicator, View } from 'react-native';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../core/config/firebase';
 
 const AuthStack = createNativeStackNavigator();
 const AppStack = createNativeStackNavigator();
 
 export const Navigation = () => {
-  const { isAuthenticated, isLoading, restoreSession } = useAuthStore();
+  const { isAuthenticated, isLoading } = useAuthStore();
+  const setUser = useAuthStore((state) => state.setUser);
 
   useEffect(() => {
-    restoreSession();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      // Sync Firebase Auth state with Zustand
+      setUser(user);
+    });
+
+    return unsubscribe;
   }, []);
 
   if (isLoading) {

@@ -20,6 +20,7 @@ let auth: Auth;
 if (!getApps().length) {
   app = initializeApp(firebaseConfig);
   // Initialize Auth with persistence (keep user logged in)
+  // @ts-ignore
   auth = initializeAuth(app, {
     persistence: getReactNativePersistence(ReactNativeAsyncStorage),
   });
