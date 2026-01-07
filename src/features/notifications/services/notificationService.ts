@@ -25,8 +25,9 @@ export const notificationService = {
   },
 
   // Create Notification (Send to Backend)
+  // Create Notification (Send to Backend)
   createNotification: async (payload: NotificationPayload) => {
-    const response = await api.post('/notifications', payload);
+    const response = await api.post('/notifications/send', payload);
     return response.data;
   }
 };

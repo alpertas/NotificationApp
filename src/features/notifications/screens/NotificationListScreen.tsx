@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, FlatList, StyleSheet } from 'react-native';
 import { Card, Text, Button, FAB, ActivityIndicator } from 'react-native-paper';
 import { notificationService } from '../services/notificationService';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../auth/store/useAuthStore';
+import { useFocusEffect } from '@react-navigation/native';
 
 // Temporary Type
 interface NotificationItem {
@@ -19,6 +20,13 @@ export const NotificationListScreen = ({ navigation }: any) => {
   const logout = useAuthStore(state => state.logout);
 
   const fetchNotifications = async () => {
+    // Race Condition Fix: Check if we have a token or user
+    const token = await import('../../../core/utils/storage').then(m => m.storage.getToken());
+    if (!token) {
+      console.log('⚠️ [NotificationList] No token ready, skipping fetch.');
+      return;
+    }
+
     setLoading(true);
     try {
       // In a real app, you might pagination here
@@ -37,9 +45,11 @@ export const NotificationListScreen = ({ navigation }: any) => {
     }
   };
 
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchNotifications();
+    }, [])
+  );
 
   const renderItem = ({ item }: { item: NotificationItem }) => (
     <Card style={styles.card}>
