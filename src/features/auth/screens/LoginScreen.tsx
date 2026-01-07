@@ -1,119 +1,123 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { TextInput, Button, Text, HelperText } from 'react-native-paper';
+import { View, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { TextInput, Button, Text, HelperText, useTheme } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, LoginCredentials } from '../authTypes';
 import { useAuthStore } from '../store/useAuthStore';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getAuth } from 'firebase/auth';
+import { useToast } from '../../../core/hooks/useToast';
+import { parseAuthError } from '../../../core/utils/errorParser';
 
 export const LoginScreen = ({ navigation }: any) => {
   const login = useAuthStore((state) => state.login);
   const isLoading = useAuthStore((state) => state.isLoading);
-  const [error, setError] = React.useState<string | null>(null);
+  const { showToast } = useToast();
+  const theme = useTheme();
 
   const { control, handleSubmit, formState: { errors } } = useForm<LoginCredentials>({
     resolver: zodResolver(loginSchema),
   });
 
   const onSubmit = async (data: LoginCredentials) => {
-    console.log("🟢 [DEBUG] onSubmit fonksiyonuna girildi. Veriler:", data);
-
-    setError(null);
     try {
-      console.log("🟡 [DEBUG] useAuthStore.login çağrılıyor...");
+      console.log("🟡 [DEBUG] Logging in...");
       await login(data);
-      console.log("✅ [DEBUG] Login işlemi tamamlandı.");
-
-      const auth = getAuth();
-      const user = auth.currentUser;
-      if (user) {
-        const token = await user.getIdToken();
-        console.log("\n🔥🔥🔥 BACKEND TEST TOKEN 🔥🔥🔥");
-        console.log(token);
-        console.log("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥\n");
-      } else {
-        console.log("⚠️ [DEBUG] User objesi null geldi.");
-      }
-
+      console.log("✅ [DEBUG] Login success.");
     } catch (err: any) {
-      console.error("🔴 [DEBUG] HATA OLUŞTU:", err);
-      console.log("🔴 [DEBUG] Hata Detayı:", JSON.stringify(err, null, 2));
-      setError(err.message || 'Login failed');
+      console.error("🔴 [DEBUG] Login Error:", err);
+      showToast(parseAuthError(err), 'error');
     }
   };
 
-  const onError = (errors: any) => {
-    console.log("⛔ [DEBUG] Form Validasyon Hatası:", errors);
-  };
-
   return (
-    <SafeAreaView style={styles.container}>
-      <Text variant="headlineMedium" style={styles.title}>Welcome Back</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: '#F7F9FC' }]} edges={['top']}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+          <View style={styles.headerContainer}>
+            <Text variant="displaySmall" style={styles.title}>Welcome!</Text>
+            <Text variant="bodyLarge" style={styles.subtitle}>Sign in to continue</Text>
+          </View>
 
-      <View style={styles.form}>
-        <Controller
-          control={control}
-          name="email"
-          render={({ field: { onChange, value } }) => (
-            <TextInput
-              label="Email"
-              value={value}
-              onChangeText={onChange}
-              mode="outlined"
-              error={!!errors.email}
-              autoCapitalize="none"
-              keyboardType="email-address"
+          <View style={styles.form}>
+            <Controller
+              control={control}
+              name="email"
+              render={({ field: { onChange, value } }) => (
+                <TextInput
+                  label="Email"
+                  value={value}
+                  onChangeText={onChange}
+                  mode="outlined"
+                  theme={{ roundness: 12 }}
+                  style={styles.input}
+                  outlineColor="transparent"
+                  activeOutlineColor="#6200ee"
+                  placeholderTextColor="#9CA3AF"
+                  error={!!errors.email}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  left={<TextInput.Icon icon="email-outline" color="#6B7280" />}
+                />
+              )}
             />
-          )}
-        />
-        <HelperText type="error" visible={!!errors.email}>
-          {errors.email?.message}
-        </HelperText>
+            {errors.email && (
+              <HelperText type="error" visible={true} style={styles.helperText}>
+                {errors.email.message}
+              </HelperText>
+            )}
 
-        <Controller
-          control={control}
-          name="password"
-          render={({ field: { onChange, value } }) => (
-            <TextInput
-              label="Password"
-              value={value}
-              onChangeText={onChange}
-              mode="outlined"
-              secureTextEntry
-              error={!!errors.password}
+            <Controller
+              control={control}
+              name="password"
+              render={({ field: { onChange, value } }) => (
+                <TextInput
+                  label="Password"
+                  value={value}
+                  onChangeText={onChange}
+                  mode="outlined"
+                  theme={{ roundness: 12 }}
+                  style={styles.input}
+                  outlineColor="transparent"
+                  activeOutlineColor="#6200ee"
+                  secureTextEntry
+                  error={!!errors.password}
+                  left={<TextInput.Icon icon="lock-outline" color="#6B7280" />}
+                />
+              )}
             />
-          )}
-        />
-        <HelperText type="error" visible={!!errors.password}>
-          {errors.password?.message}
-        </HelperText>
+            {errors.password && (
+              <HelperText type="error" visible={true} style={styles.helperText}>
+                {errors.password.message}
+              </HelperText>
+            )}
 
-        {error && (
-          <HelperText type="error" visible={!!error}>
-            {error}
-          </HelperText>
-        )}
+            <Button
+              mode="contained"
+              onPress={handleSubmit(onSubmit)}
+              loading={isLoading}
+              disabled={isLoading}
+              style={styles.button}
+              contentStyle={styles.buttonContent}
+              labelStyle={styles.buttonLabel}
+            >
+              LOGIN
+            </Button>
 
-        <Button
-          mode="contained"
-          onPress={handleSubmit(onSubmit, onError)}
-          loading={isLoading}
-          disabled={isLoading}
-          style={styles.button}
-        >
-          Login
-        </Button>
-
-        <Button
-          mode="text"
-          onPress={() => navigation.navigate('Register')}
-          style={styles.link}
-        >
-          Don't have an account? Sign up
-        </Button>
-      </View>
+            <TouchableOpacity
+              onPress={() => navigation.replace('Register')}
+              style={styles.linkContainer}
+            >
+              <Text variant="bodyMedium" style={{ color: '#6B7280' }}>
+                Don't have an account? <Text style={{ color: '#6200ee', fontWeight: 'bold' }}>Sign Up</Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -121,21 +125,57 @@ export const LoginScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+  },
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
+    padding: 24,
+  },
+  headerContainer: {
+    marginBottom: 40,
+    alignItems: 'flex-start',
   },
   title: {
-    textAlign: 'center',
-    marginBottom: 30,
     fontWeight: 'bold',
+    color: '#1F2937',
+    marginBottom: 8,
+  },
+  subtitle: {
+    color: '#6B7280',
   },
   form: {
-    gap: 5,
+    width: '100%',
+  },
+  input: {
+    backgroundColor: '#FFFFFF',
+    marginBottom: 4,
+    fontSize: 16,
+  },
+  helperText: {
+    marginBottom: 8,
+    marginTop: -4,
   },
   button: {
-    marginTop: 10,
+    marginTop: 16,
+    borderRadius: 16,
+    elevation: 4, // Shadow for Android
+    shadowColor: '#6200ee',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    backgroundColor: '#6200ee',
   },
-  link: {
-    marginTop: 10,
+  buttonContent: {
+    height: 56,
+  },
+  buttonLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+  },
+  linkContainer: {
+    marginTop: 24,
+    alignItems: 'center',
+    padding: 8,
   },
 });

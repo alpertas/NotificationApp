@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
-import { TextInput, Button, Text } from 'react-native-paper';
+import { View, StyleSheet, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { TextInput, Button, Text, IconButton, useTheme } from 'react-native-paper';
+import { useToast } from '../../../core/hooks/useToast';
 import { notificationService } from '../services/notificationService';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -8,10 +9,13 @@ export const CreateNotificationScreen = ({ navigation }: any) => {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [loading, setLoading] = useState(false);
+  const theme = useTheme();
+
+  const { showToast } = useToast();
 
   const handleSend = async () => {
     if (!title || !body) {
-      Alert.alert('Error', 'Please fill in all fields');
+      showToast('Please fill in all fields', 'error');
       return;
     }
 
@@ -25,10 +29,10 @@ export const CreateNotificationScreen = ({ navigation }: any) => {
         body,
         data: { screen: 'NotificationList' }
       });
-      Alert.alert('Success', 'Notification sent!');
+      showToast('Notification sent!', 'success');
       navigation.goBack();
     } catch (error) {
-      Alert.alert('Error', 'Failed to send notification');
+      showToast('Failed to send notification', 'error');
       console.error(error);
     } finally {
       setLoading(false);
@@ -36,41 +40,71 @@ export const CreateNotificationScreen = ({ navigation }: any) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-       <View style={styles.header}>
-        <Button mode="text" onPress={() => navigation.goBack()}>Back</Button>
-        <Text variant="headlineSmall">New Notification</Text>
-        <View style={{ width: 60 }} />
-      </View>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {/* Custom Header */}
+          <View style={styles.header}>
+            <IconButton
+              icon="arrow-left"
+              size={24}
+              onPress={() => navigation.goBack()}
+              style={styles.backButton}
+            />
+            <View>
+              <Text variant="titleLarge" style={styles.headerTitle}>New Notification</Text>
+              <Text variant="bodySmall" style={styles.headerSubtitle}>Compose a message to yourself</Text>
+            </View>
+          </View>
 
-      <View style={styles.form}>
-        <TextInput
-          label="Title"
-          value={title}
-          onChangeText={setTitle}
-          mode="outlined"
-          style={styles.input}
-        />
-         <TextInput
-          label="Message"
-          value={body}
-          onChangeText={setBody}
-          mode="outlined"
-          multiline
-          numberOfLines={4}
-          style={styles.input}
-        />
-        
-        <Button 
-          mode="contained" 
-          onPress={handleSend} 
-          loading={loading}
-          disabled={loading}
-          style={styles.button}
-        >
-          Send Notification
-        </Button>
-      </View>
+          <View style={styles.form}>
+            <TextInput
+              label="Title"
+              value={title}
+              onChangeText={setTitle}
+              mode="outlined"
+              style={styles.input}
+              outlineColor="transparent"
+              activeOutlineColor="#6200ee"
+              theme={{ roundness: 12 }}
+              left={<TextInput.Icon icon="format-title" color="#6B7280" />}
+              placeholder="Enter notification title"
+              placeholderTextColor="#9CA3AF"
+            />
+
+            <TextInput
+              label="Message"
+              value={body}
+              onChangeText={setBody}
+              mode="outlined"
+              multiline
+              numberOfLines={6}
+              style={[styles.input, styles.textArea]}
+              outlineColor="transparent"
+              activeOutlineColor="#6200ee"
+              theme={{ roundness: 12 }}
+              left={<TextInput.Icon icon="text" color="#6B7280" style={{ marginBottom: 84 }} />} // Align icon to top aproximately
+              placeholder="What's on your mind?"
+              placeholderTextColor="#9CA3AF"
+            />
+
+            <Button
+              mode="contained"
+              onPress={handleSend}
+              loading={loading}
+              disabled={loading}
+              style={styles.button}
+              contentStyle={styles.buttonContent}
+              labelStyle={styles.buttonLabel}
+            >
+              SEND NOTIFICATION
+            </Button>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -78,22 +112,56 @@ export const CreateNotificationScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F7F9FC',
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 12,
+  },
+  backButton: {
+    marginRight: 8,
+    marginLeft: -8,
+  },
+  headerTitle: {
+    fontWeight: 'bold',
+    color: '#1F2937',
+  },
+  headerSubtitle: {
+    color: '#6B7280',
   },
   form: {
-    padding: 20,
-    gap: 15,
+    padding: 24,
+    gap: 16,
   },
   input: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
+    fontSize: 16,
+  },
+  textArea: {
+    paddingVertical: 8, // Add padding for multiline comfort
   },
   button: {
-    marginTop: 10,
+    marginTop: 24,
+    borderRadius: 16,
+    elevation: 4,
+    shadowColor: '#6200ee',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    backgroundColor: '#6200ee',
+  },
+  buttonContent: {
+    height: 56,
+  },
+  buttonLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    letterSpacing: 1,
   },
 });
