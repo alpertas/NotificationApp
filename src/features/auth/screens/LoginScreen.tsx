@@ -55,7 +55,7 @@ export const LoginScreen = ({ navigation }: any) => {
                   theme={{ roundness: 12 }}
                   style={styles.input}
                   outlineColor="transparent"
-                  activeOutlineColor="#6200ee"
+                  activeOutlineColor="#FF8F00"
                   placeholderTextColor="#9CA3AF"
                   error={!!errors.email}
                   autoCapitalize="none"
@@ -82,7 +82,7 @@ export const LoginScreen = ({ navigation }: any) => {
                   theme={{ roundness: 12 }}
                   style={styles.input}
                   outlineColor="transparent"
-                  activeOutlineColor="#6200ee"
+                  activeOutlineColor="#FF8F00"
                   secureTextEntry
                   error={!!errors.password}
                   left={<TextInput.Icon icon="lock-outline" color="#6B7280" />}
@@ -112,7 +112,7 @@ export const LoginScreen = ({ navigation }: any) => {
               style={styles.linkContainer}
             >
               <Text variant="bodyMedium" style={{ color: '#6B7280' }}>
-                Don't have an account? <Text style={{ color: '#6200ee', fontWeight: 'bold' }}>Sign Up</Text>
+                Don't have an account? <Text style={{ color: '#FF8F00', fontWeight: 'bold' }}>Sign Up</Text>
               </Text>
             </TouchableOpacity>
           </View>
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   input: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F5F5F5',
     marginBottom: 4,
     fontSize: 16,
   },
@@ -159,11 +159,11 @@ const styles = StyleSheet.create({
     marginTop: 16,
     borderRadius: 16,
     elevation: 4, // Shadow for Android
-    shadowColor: '#6200ee',
+    shadowColor: '#FF8F00',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
-    backgroundColor: '#6200ee',
+    backgroundColor: '#FF8F00',
   },
   buttonContent: {
     height: 56,

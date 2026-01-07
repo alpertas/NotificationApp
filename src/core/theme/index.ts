@@ -4,10 +4,11 @@ export const theme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary: '#6200ee',
-    secondary: '#03dac6',
-    background: '#f6f6f6',
+    primary: '#FF8F00', // Firebase Deep Orange
+    secondary: '#FF6F00',
+    background: '#F7F9FC', // Keep soft background
     surface: '#ffffff',
-    error: '#B00020',
+    error: '#D32F2F',
+    primaryContainer: '#FFF8E1', // Pale Amber for containers
   },
 };

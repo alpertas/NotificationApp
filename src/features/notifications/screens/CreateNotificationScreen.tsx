@@ -68,7 +68,7 @@ export const CreateNotificationScreen = ({ navigation }: any) => {
               mode="outlined"
               style={styles.input}
               outlineColor="transparent"
-              activeOutlineColor="#6200ee"
+              activeOutlineColor="#FF8F00"
               theme={{ roundness: 12 }}
               left={<TextInput.Icon icon="format-title" color="#6B7280" />}
               placeholder="Enter notification title"
@@ -84,7 +84,7 @@ export const CreateNotificationScreen = ({ navigation }: any) => {
               numberOfLines={6}
               style={[styles.input, styles.textArea]}
               outlineColor="transparent"
-              activeOutlineColor="#6200ee"
+              activeOutlineColor="#FF8F00"
               theme={{ roundness: 12 }}
               left={<TextInput.Icon icon="text" color="#6B7280" style={{ marginBottom: 84 }} />} // Align icon to top aproximately
               placeholder="What's on your mind?"
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   input: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F5F5F5',
     fontSize: 16,
   },
   textArea: {
@@ -150,11 +150,11 @@ const styles = StyleSheet.create({
     marginTop: 24,
     borderRadius: 16,
     elevation: 4,
-    shadowColor: '#6200ee',
+    shadowColor: '#FF8F00',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
-    backgroundColor: '#6200ee',
+    backgroundColor: '#FF8F00',
   },
   buttonContent: {
     height: 56,

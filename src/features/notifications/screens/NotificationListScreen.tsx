@@ -74,7 +74,7 @@ export const NotificationListScreen = ({ navigation }: any) => {
     return (
       <View style={styles.cardContainer}>
         <View style={styles.cardIconContainer}>
-          <IconButton icon="bell-ring-outline" iconColor="#6200ee" size={24} />
+          <IconButton icon="bell-ring-outline" iconColor="#FF8F00" size={24} />
         </View>
         <View style={styles.cardContent}>
           <View style={styles.cardHeader}>
@@ -109,7 +109,7 @@ export const NotificationListScreen = ({ navigation }: any) => {
         If initial loading (and no data), we can show ActivityIndicator, but for refresh we need list.
       */}
       {loading && notifications.length === 0 ? (
-        <ActivityIndicator animating={true} style={styles.loader} color="#6200ee" size="large" />
+        <ActivityIndicator animating={true} style={styles.loader} color="#FF8F00" size="large" />
       ) : (
         <FlatList
             data={notifications.slice().reverse()} // Show newest first
@@ -135,7 +135,7 @@ export const NotificationListScreen = ({ navigation }: any) => {
         onPress={() => navigation.navigate('CreateNotification')}
         label="New"
         color="white"
-        theme={{ colors: { primaryContainer: '#6200ee' } }}
+        theme={{ colors: { primaryContainer: '#FF8F00' } }}
       />
     </SafeAreaView>
   );
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
   },
   cardIconContainer: {
-    backgroundColor: '#F3E5F5',
+    backgroundColor: '#FFF3E0', // Light Orange
     borderRadius: 12,
     marginRight: 16,
     justifyContent: 'center',
