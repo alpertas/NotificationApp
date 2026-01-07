@@ -9,6 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useToast } from '../../../core/hooks/useToast';
 import { parseAuthError } from '../../../core/utils/errorParser';
 import { getAuth } from 'firebase/auth';
+import { GlobalLoader } from '../../../core/components/GlobalLoader';
 
 export const LoginScreen = ({ navigation }: any) => {
   const login = useAuthStore((state) => state.login);
@@ -48,6 +49,7 @@ export const LoginScreen = ({ navigation }: any) => {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: '#F7F9FC' }]} edges={['top']}>
+      <GlobalLoader visible={isLoading} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
@@ -114,7 +116,6 @@ export const LoginScreen = ({ navigation }: any) => {
             <Button
               mode="contained"
               onPress={handleSubmit(onSubmit)}
-              loading={isLoading}
               disabled={isLoading}
               style={styles.button}
               contentStyle={styles.buttonContent}

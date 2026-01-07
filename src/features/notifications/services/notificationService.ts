@@ -11,7 +11,8 @@ export const notificationService = {
   // Sync FCM Token with Backend
   syncDeviceToken: async (token: string) => {
     try {
-      await api.post('/users/device-token', { token });
+      await api.post('/auth/sync-token', { fcmToken: token });
+      console.log('✅ [NotificationService] Token synced with backend');
     } catch (error) {
       console.error('Failed to sync device token', error);
       // Silent fail or retry logic could go here
@@ -28,6 +29,12 @@ export const notificationService = {
   // Create Notification (Send to Backend)
   createNotification: async (payload: NotificationPayload) => {
     const response = await api.post('/notifications/send', payload);
+    return response.data;
+  },
+
+  // Save as Draft (DB Only)
+  saveAsDraft: async (payload: NotificationPayload) => {
+    const response = await api.post('/notifications', payload);
     return response.data;
   }
 };

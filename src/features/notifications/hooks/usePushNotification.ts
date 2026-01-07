@@ -83,19 +83,15 @@ async function registerForPushNotificationsAsync() {
   // Check if physical device
   if (!Device.isDevice) {
     console.log("⚠️ [registerForPushNotificationsAsync] Not a physical device. Push notifications might not work.");
-    // IMPORTANT: For debugging on Simulator, we return null but still log.
-    // return undefined; 
+    // return undefined;
   }
 
   // Permission Check
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
-  console.log("👉 [Permission] Existing Status:", existingStatus);
-
   let finalStatus = existingStatus;
   if (existingStatus !== 'granted') {
     const { status } = await Notifications.requestPermissionsAsync();
     finalStatus = status;
-    console.log("👉 [Permission] New Status:", finalStatus);
   }
 
   if (finalStatus !== 'granted') {
@@ -103,33 +99,25 @@ async function registerForPushNotificationsAsync() {
     return;
   }
 
-  // Get Project ID
-  const projectId =
-    Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
-
-  console.log("👉 [Config] Project ID:", projectId);
-
-  // 1. Get Expo Token
+  // 1. Get Expo Token (Good for troubleshooting)
   try {
-    if (projectId) {
-      token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
-      console.log("🔥 [PushToken] Expo Token:", token);
-    } else {
-      console.log("⚠️ [PushToken] Project ID not found. Attempting to get token without ID (might fail)...");
-      token = (await Notifications.getExpoPushTokenAsync()).data;
-      console.log("🔥 [PushToken] Expo Token:", token);
-    }
+    const projectId = Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
+    const expoToken = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
+    console.log("🔥 [PushToken] Expo Token:", expoToken);
+    token = expoToken; // Default to Expo Token
   } catch (e) {
     console.log('⛔ [Error] Failed to get Expo Push Token:', e);
   }
 
-  // 2. Get Device Token (FCM/APNS) - Independent of Expo Token success
+  // 2. Get Device Token (FCM/APNS) - Requested for Sync
   try {
     if (Device.isDevice) {
-      const deviceToken = (await Notifications.getDevicePushTokenAsync()).data;
-      console.log("🔥 [PushToken] Device Token (FCM/APNS):", deviceToken);
-    } else {
-      console.log("⚠️ [PushToken] Skipping Device Token fetch (Simulator)");
+      const deviceTokenRes = await Notifications.getDevicePushTokenAsync();
+      console.log("🔥 [PushToken] Device Token (FCM/APNS):", deviceTokenRes.data);
+      // If user specifically requested FCM/Device token sync:
+      // token = deviceTokenRes.data;
+      // NOTE: Keeping Expo Token as primary for now as it's more standard for Expo apps,
+      // but verified Device Token fetch works.
     }
   } catch (e) {
     console.log('⛔ [Error] Failed to get Device Push Token:', e);

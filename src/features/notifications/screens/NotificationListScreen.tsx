@@ -7,6 +7,7 @@ import { useAuthStore } from '../../auth/store/useAuthStore';
 import { useFocusEffect } from '@react-navigation/native';
 import { useToast } from '../../../core/hooks/useToast';
 import { formatRelativeTime } from '../../../core/utils/dateFormatter';
+import { NotificationSkeleton } from '../components/NotificationSkeleton';
 
 // Enhanced Notification Type
 interface NotificationItem {
@@ -14,7 +15,7 @@ interface NotificationItem {
   title: string;
   body: string;
   createdAt: string;
-  deliveryStatus: 'PENDING' | 'SENT' | 'FAILED';
+  deliveryStatus: 'PENDING' | 'SENT' | 'FAILED' | 'DRAFT';
 }
 
 const getStatusColor = (status: NotificationItem['deliveryStatus']) => {
@@ -22,6 +23,7 @@ const getStatusColor = (status: NotificationItem['deliveryStatus']) => {
     case 'SENT': return '#4CAF50'; // Green
     case 'FAILED': return '#D32F2F'; // Red
     case 'PENDING': return '#FF9800'; // Orange
+    case 'DRAFT': return '#9E9E9E'; // Grey
     default: return '#9E9E9E'; // Grey
   }
 };
@@ -31,6 +33,7 @@ const getStatusIcon = (status: NotificationItem['deliveryStatus']) => {
     case 'SENT': return 'check-circle-outline';
     case 'FAILED': return 'alert-circle-outline';
     case 'PENDING': return 'clock-outline';
+    case 'DRAFT': return 'content-save-outline';
     default: return 'bell-outline';
   }
 };
@@ -59,6 +62,9 @@ export const NotificationListScreen = ({ navigation }: any) => {
         deliveryStatus: item.deliveryStatus || 'SENT',
         createdAt: item.createdAt || item.timestamp || new Date().toISOString() // Handle timestamp field
       })) : [];
+      // Sort by createdAt descending (newest first)
+      mappedData.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
       setNotifications(mappedData);
       if (mappedData.length > 0) {
         console.log("🐛 [DEBUG] First Notification Item:", JSON.stringify(mappedData[0], null, 2));
@@ -95,10 +101,10 @@ export const NotificationListScreen = ({ navigation }: any) => {
         </View>
         <View style={styles.cardContent}>
           <View style={styles.cardHeader}>
-            <Text variant="titleMedium" style={styles.cardTitle}>{item.title}</Text>
+            <Text variant="titleMedium" style={styles.cardTitle} numberOfLines={1} ellipsizeMode="tail">{item.title}</Text>
             <Text variant="bodySmall" style={styles.cardDate}>{formatRelativeTime(item.createdAt)}</Text>
           </View>
-          <Text variant="bodyMedium" style={styles.cardBody} numberOfLines={2}>{item.body}</Text>
+          <Text variant="bodyMedium" style={styles.cardBody} numberOfLines={2} ellipsizeMode="tail">{item.body}</Text>
         </View>
       </View>
     );
@@ -126,10 +132,10 @@ export const NotificationListScreen = ({ navigation }: any) => {
         If initial loading (and no data), we can show ActivityIndicator, but for refresh we need list.
       */}
       {loading && notifications.length === 0 ? (
-        <ActivityIndicator animating={true} style={styles.loader} color="#FF8F00" size="large" />
+        <NotificationSkeleton />
       ) : (
         <FlatList
-            data={notifications.slice().reverse()} // Show newest first
+            data={notifications} // Already sorted newest first
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           contentContainerStyle={styles.list}

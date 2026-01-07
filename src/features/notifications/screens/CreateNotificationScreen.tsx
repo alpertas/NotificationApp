@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createNotificationSchema, CreateNotificationFormData } from '../notificationTypes';
+import * as Notifications from 'expo-notifications';
 
 // Reusable Custom Input Component with External Label
 const CustomLabeledInput = ({
@@ -60,12 +61,14 @@ const CustomLabeledInput = ({
   );
 };
 
+import { GlobalLoader } from '../../../core/components/GlobalLoader';
+
 export const CreateNotificationScreen = ({ navigation }: any) => {
   const [loading, setLoading] = useState(false);
   const theme = useTheme();
   const { showToast } = useToast();
 
-  const { control, handleSubmit, formState: { errors }, watch } = useForm<CreateNotificationFormData>({
+  const { control, handleSubmit, formState: { errors }, watch, getValues } = useForm<CreateNotificationFormData>({
     resolver: zodResolver(createNotificationSchema),
     defaultValues: {
       title: '',
@@ -85,7 +88,7 @@ export const CreateNotificationScreen = ({ navigation }: any) => {
         body: data.body,
         data: { screen: 'NotificationList' }
       });
-      showToast('Notification sent!', 'success');
+      showToast('Push Sent: ' + data.title, 'success');
       navigation.goBack();
     } catch (error) {
       showToast('Failed to send notification', 'error');
@@ -95,8 +98,55 @@ export const CreateNotificationScreen = ({ navigation }: any) => {
     }
   };
 
+  const handleTestNotification = async () => {
+    const title = getValues('title');
+    const body = getValues('body');
+
+    if (!title || !body) {
+      showToast('Please enter title and message to test', 'info');
+      return;
+    }
+
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title,
+        body,
+        data: { test: true },
+      },
+      trigger: null, // Immediate
+    });
+
+    showToast('Local Notification Scheduled', 'success');
+  };
+
+  const handleSaveDraft = async () => {
+    const data = getValues();
+    if (!data.title || !data.body) {
+      showToast('Please enter title and body to save draft', 'info');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await notificationService.saveAsDraft({
+        to: 'self',
+        title: data.title,
+        body: data.body,
+        data: { screen: 'NotificationList', status: 'DRAFT' }
+      });
+      showToast('Saved to drafts', 'info');
+      navigation.goBack();
+    } catch (error) {
+      showToast('Failed to save draft', 'error');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <GlobalLoader visible={loading} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
@@ -181,18 +231,41 @@ export const CreateNotificationScreen = ({ navigation }: any) => {
 
               </View>
 
-              {/* Action Button */}
-              <Button
-                mode="contained"
-                onPress={handleSubmit(onSubmit)}
-                loading={loading}
-                disabled={loading}
-                style={styles.button}
-                contentStyle={styles.buttonContent}
-                labelStyle={styles.buttonLabel}
-              >
-                {loading ? 'SENDING...' : 'SEND NOTIFICATION'}
-              </Button>
+              {/* Action Buttons */}
+              <View style={{ gap: 12 }}>
+                <Button
+                  mode="outlined"
+                  onPress={handleTestNotification}
+                  disabled={loading}
+                  style={styles.testButton}
+                  textColor="#FF8F00"
+                  icon="bell-ring-outline"
+                >
+                  TEST LOCAL NOTIFICATION
+                </Button>
+
+                <Button
+                  mode="outlined"
+                  onPress={handleSaveDraft}
+                  disabled={loading}
+                  style={styles.draftButton}
+                  textColor="#757575"
+                  icon="content-save-outline"
+                >
+                  SAVE AS DRAFT
+                </Button>
+
+                <Button
+                  mode="contained"
+                  onPress={handleSubmit(onSubmit)}
+                  disabled={loading}
+                  style={styles.button}
+                  contentStyle={styles.buttonContent}
+                  labelStyle={styles.buttonLabel}
+                >
+                  SEND NOTIFICATION
+                </Button>
+              </View>
 
             </View>
 
@@ -315,6 +388,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 6,
     backgroundColor: '#FFA000', 
+  },
+  testButton: {
+    borderRadius: 12,
+    borderColor: '#FFA000',
+    borderWidth: 1,
+  },
+  draftButton: {
+    borderRadius: 12,
+    borderColor: '#E0E0E0',
+    backgroundColor: '#FAFAFA',
+    borderWidth: 1,
   },
   buttonContent: {
     height: 56,
