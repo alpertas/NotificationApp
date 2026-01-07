@@ -1,49 +1,100 @@
-# Notification App
+# Notification Client App 📱
 
-A React Native application demonstrating "Notification Center" features with Clean Architecture, Firebase Auth, and Push Notifications.
+A professional React Native application built with **Expo**, demonstrating a robust implementation of "Notification Center" features. The app follows **Clean Architecture** principles and implements secure Authentication, Token Persistence, and Push Notification handling.
 
-## Features
+<p align="center">
+  <!-- Screenshots placeholders -->
+  <img src="https://via.placeholder.com/200x400?text=Login+Screen" alt="Login Screen" width="200" />
+  &nbsp;&nbsp;&nbsp;
+  <img src="https://via.placeholder.com/200x400?text=Notification+List" alt="List Screen" width="200" />
+  &nbsp;&nbsp;&nbsp;
+  <img src="https://via.placeholder.com/200x400?text=Create+Notification" alt="Create Screen" width="200" />
+</p>
 
-- **Authentication**: Firebase Auth (Email/Password) with VSCode persistence.
-- **Push Notifications**: Expo Notifications with FCM integration.
-- **Token Management**: Secure storage and backend synchronization.
-- **Clean Architecture**: Feature-based folder structure.
+## 🚀 Features
 
-## Setup
+- **Secure Authentication**: Firebase Auth integration with persistent sessions (AsyncStorage).
+- **Push Notifications**: Full FCM (Firebase Cloud Messaging) support with Token Sync logic.
+- **State Management**: Scalable global state management using `Zustand`.
+- **Form Management**: Validated inputs with `React Hook Form` and `Zod`.
+- **Robust Networking**: `Axios` interceptors for automatic Token injection and error logging.
+- **Platform Optimized**: Custom handling for Android vs iOS networking environments.
 
-1. **Install Dependencies**
+## 🛠 Tech Stack
+
+- **Framework**: React Native (Expo SDK 50+)
+- **Language**: TypeScript
+- **State**: Zustand
+- **Network**: Axios
+- **UI Architecture**: Clean Architecture (Feature-based)
+- **UI Library**: React Native Paper
+- **Forms**: React Hook Form + Zod
+- **Storage**: Expo SecureStore + AsyncStorage
+
+## 📦 Installation & Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone <repo-url>
+   cd NotificationApp
+   ```
+
+2. **Install Dependencies**
    ```bash
    npm install
    ```
 
-2. **Environment Variables**
-   Create a `.env` file in the root directory based on `.env.example`.
-
-   **.env Example:**
-   ```properties
-   EXPO_PUBLIC_API_URL=http://10.0.2.2:3000
-   EXPO_PUBLIC_FIREBASE_API_KEY=your_api_key
-   EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-   EXPO_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-   EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-   EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-   EXPO_PUBLIC_FIREBASE_APP_ID=your_app_id
+3. **Configure Environment**
+   Create a `.env` file in the root directory (copy from `.env.example`).
+   ```bash
+   cp .env.example .env
    ```
 
-3. **Run the App**
+4. **Run the Application**
    ```bash
    npx expo start
    ```
 
-## Architecture
+## ⚠️ Configuration & Troubleshooting
 
-- `src/features`: Contains `auth` and `notifications` modules.
-- `src/core`: Shared utilities, API configuration, and theme.
-- `src/app`: Navigation and app entry setup.
+### 🌐 Network Connection (Critical)
+The most common issue during development is connecting to the Backend API from different environments. We maintain a single `EXPO_PUBLIC_API_URL` variable, but you must configure it based on your device:
 
-## Notifications Flow
+| Device | Setting (`.env`) | Description |
+|--------|------------------|-------------|
+| **Android Emulator** | `http://10.0.2.2:3000` | Android requires specific IP to reach host localhost. |
+| **iOS Simulator** | `http://localhost:3000` | iOS Simulator maps localhost directly to host. |
+| **Physical Device** | `http://192.168.x.x:3000` | Use your computer's local LAN IP address. |
 
-1. **Permission**: App requests permission on boot (`usePushNotification`).
-2. **Registration**: FCM Token is generated and stored in `SecureStore`.
-3. **Sync**: Token is sent to backend via `POST /users/device-token`.
-4. **Sending**: Use the "Create Notification" screen to trigger a notification via backend API.
+**Troubleshooting:**
+- If you see `Network Error` logs: Check your `.env` file and ensure the backend server is running on port 3000.
+- Restart Metro bundler (`r` key) after changing `.env` values.
+
+### 🔔 Push Notifications
+> [!IMPORTANT]
+> **Push Notifications do NOT work on standard iOS/Android Simulators.**
+
+- **iOS Simulator**: Does *not* support remote push notifications. You must use a physical device.
+- **Android Emulator**: Supports FCM only if Google Play Services are installed and correctly configured.
+- **Best Practice**: Use a **Development Build** (`npx expo run:ios` / `npx expo run:android`) or a physical device via Expo Go for reliable notification testing.
+
+## 📂 Project Structure
+
+```
+src/
+├── app/              # Navigation & Entry points
+├── core/             # Core utilities (API, Config, Theme)
+├── features/         # Feature modules
+│   ├── auth/         # Login, Register, Stores
+│   └── notifications/# List, Create, Services
+└── components/       # Shared UI components
+```
+
+## 🧪 Testing
+
+- **Linting**: Run `eslint` availability.
+- **Manual Test flow**:
+  1. Register a new user.
+  2. Check console for `[API Request]` logs.
+  3. Verify Token Sync (POST `/users/device-token`).
+  4. Send a notification and verify list update with `useFocusEffect`.
