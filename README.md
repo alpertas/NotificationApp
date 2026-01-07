@@ -35,7 +35,7 @@ A professional React Native application built with **Expo**, demonstrating a rob
 
 1. **Clone the repository**
    ```bash
-   git clone <repo-url>
+   git clone https://github.com/alpertas/NotificationApp.git
    cd NotificationApp
    ```
 
