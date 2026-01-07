@@ -1,32 +1,88 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { TextInput, Button, Text, IconButton, useTheme } from 'react-native-paper';
+import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TextInput as RNTextInput } from 'react-native';
+import { Button, Text, IconButton, useTheme, HelperText } from 'react-native-paper';
 import { useToast } from '../../../core/hooks/useToast';
 import { notificationService } from '../services/notificationService';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { createNotificationSchema, CreateNotificationFormData } from '../notificationTypes';
+
+// Reusable Custom Input Component with External Label
+const CustomLabeledInput = ({
+  label,
+  value,
+  onChangeText,
+  onBlur,
+  placeholder,
+  error,
+  multiline = false,
+  numberOfLines = 1,
+  disabled = false,
+}: any) => {
+  const [isFocused, setIsFocused] = useState(false);
+
+  const handleFocus = () => setIsFocused(true);
+  const handleBlur = (e: any) => {
+    setIsFocused(false);
+    onBlur && onBlur(e);
+  };
+
+  return (
+    <View style={styles.inputWrapper}>
+      <Text style={styles.inputLabel}>{label}</Text>
+      <View
+        style={[
+          styles.inputBox,
+          isFocused && styles.inputBoxFocused,
+          error && styles.inputBoxError,
+          disabled && styles.inputBoxDisabled,
+          multiline && { height: 120 }
+        ]}
+      >
+        <RNTextInput
+          value={value}
+          onChangeText={onChangeText}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          placeholder={placeholder}
+          placeholderTextColor="#9CA3AF"
+          style={[
+            styles.nativeInput,
+            multiline && { textAlignVertical: 'top', paddingTop: 12 }
+          ]}
+          multiline={multiline}
+          numberOfLines={numberOfLines}
+          editable={!disabled}
+        />
+      </View>
+    </View>
+  );
+};
 
 export const CreateNotificationScreen = ({ navigation }: any) => {
-  const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
   const [loading, setLoading] = useState(false);
   const theme = useTheme();
-
   const { showToast } = useToast();
 
-  const handleSend = async () => {
-    if (!title || !body) {
-      showToast('Please fill in all fields', 'error');
-      return;
+  const { control, handleSubmit, formState: { errors }, watch } = useForm<CreateNotificationFormData>({
+    resolver: zodResolver(createNotificationSchema),
+    defaultValues: {
+      title: '',
+      body: ''
     }
+  });
 
+  const titleValue = watch('title');
+  const bodyValue = watch('body');
+
+  const onSubmit = async (data: CreateNotificationFormData) => {
     setLoading(true);
     try {
-      // Assuming sending to 'self' or handled by backend logic (to: 'current_user_token' or topic)
-      // For this case study, we just send title/body.
       await notificationService.createNotification({
-        to: 'self', // or specific token if the app supports picking users
-        title,
-        body,
+        to: 'self',
+        title: data.title,
+        body: data.body,
         data: { screen: 'NotificationList' }
       });
       showToast('Notification sent!', 'success');
@@ -45,65 +101,103 @@ export const CreateNotificationScreen = ({ navigation }: any) => {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* Custom Header */}
-          <View style={styles.header}>
-            <IconButton
-              icon="arrow-left"
-              size={24}
-              onPress={() => navigation.goBack()}
-              style={styles.backButton}
-            />
-            <View>
-              <Text variant="titleLarge" style={styles.headerTitle}>New Notification</Text>
-              <Text variant="bodySmall" style={styles.headerSubtitle}>Compose a message to yourself</Text>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+
+            {/* Header */}
+            <View style={styles.header}>
+              <IconButton
+                icon="arrow-left"
+                size={24}
+                onPress={() => navigation.goBack()}
+                style={styles.backButton}
+              />
+              <View>
+                <Text variant="titleLarge" style={styles.headerTitle}>New Notification</Text>
+                <Text variant="bodySmall" style={styles.headerSubtitle}>Compose a message to yourself</Text>
+              </View>
             </View>
-          </View>
 
-          <View style={styles.form}>
-            <TextInput
-              label="Title"
-              value={title}
-              onChangeText={setTitle}
-              mode="outlined"
-              style={styles.input}
-              outlineColor="transparent"
-              activeOutlineColor="#FF8F00"
-              theme={{ roundness: 12 }}
-              left={<TextInput.Icon icon="format-title" color="#6B7280" />}
-              placeholder="Enter notification title"
-              placeholderTextColor="#9CA3AF"
-            />
+            <View style={styles.formContainer}>
 
-            <TextInput
-              label="Message"
-              value={body}
-              onChangeText={setBody}
-              mode="outlined"
-              multiline
-              numberOfLines={6}
-              style={[styles.input, styles.textArea]}
-              outlineColor="transparent"
-              activeOutlineColor="#FF8F00"
-              theme={{ roundness: 12 }}
-              left={<TextInput.Icon icon="text" color="#6B7280" style={{ marginBottom: 84 }} />} // Align icon to top aproximately
-              placeholder="What's on your mind?"
-              placeholderTextColor="#9CA3AF"
-            />
+              {/* Composer Card */}
+              <View style={styles.card}>
 
-            <Button
-              mode="contained"
-              onPress={handleSend}
-              loading={loading}
-              disabled={loading}
-              style={styles.button}
-              contentStyle={styles.buttonContent}
-              labelStyle={styles.buttonLabel}
-            >
-              SEND NOTIFICATION
-            </Button>
-          </View>
-        </ScrollView>
+                {/* Title Input */}
+                <View style={styles.inputContainer}>
+                  <Controller
+                    control={control}
+                    name="title"
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <CustomLabeledInput
+                        label="Title"
+                        value={value}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        placeholder="Enter title (e.g. Order Update)"
+                        error={!!errors.title}
+                        disabled={loading}
+                      />
+                    )}
+                  />
+                  <View style={styles.inputFooter}>
+                    <HelperText type="error" visible={!!errors.title} style={styles.errorText}>
+                      {errors.title?.message}
+                    </HelperText>
+                    <Text style={[styles.charCount, (titleValue?.length || 0) > 50 && styles.charCountError]}>
+                      {titleValue?.length || 0}/50
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Message Input */}
+                <View style={styles.inputContainer}>
+                  <Controller
+                    control={control}
+                    name="body"
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <CustomLabeledInput
+                        label="Message"
+                        value={value}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        placeholder="Type your message here..."
+                        multiline={true}
+                        numberOfLines={5}
+                        error={!!errors.body}
+                        disabled={loading}
+                      />
+                    )}
+                  />
+                  <View style={styles.inputFooter}>
+                    <HelperText type="error" visible={!!errors.body} style={styles.errorText}>
+                      {errors.body?.message}
+                    </HelperText>
+                    <Text style={[styles.charCount, (bodyValue?.length || 0) > 250 && styles.charCountError]}>
+                      {bodyValue?.length || 0}/250
+                    </Text>
+                  </View>
+                </View>
+
+              </View>
+
+              {/* Action Button */}
+              <Button
+                mode="contained"
+                onPress={handleSubmit(onSubmit)}
+                loading={loading}
+                disabled={loading}
+                style={styles.button}
+                contentStyle={styles.buttonContent}
+                labelStyle={styles.buttonLabel}
+              >
+                {loading ? 'SENDING...' : 'SEND NOTIFICATION'}
+              </Button>
+
+            </View>
+
+          </ScrollView>
+        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -116,13 +210,14 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+    paddingBottom: 40,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 12,
+    paddingVertical: 16,
+    marginBottom: 8,
   },
   backButton: {
     marginRight: 8,
@@ -135,26 +230,91 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     color: '#6B7280',
   },
-  form: {
+  formContainer: {
+    paddingHorizontal: 24,
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     padding: 24,
-    gap: 16,
+    // Soft Shadow
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    marginBottom: 24,
   },
-  input: {
-    backgroundColor: '#F5F5F5',
+  inputContainer: {
+    marginBottom: 20, // Increased spacing between groups
+  },
+  inputWrapper: {
+    // Wrapper around label and input box
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#424242',
+    marginBottom: 6, // 4-6px spacing
+    marginLeft: 2,
+  },
+  inputBox: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 12,
+    backgroundColor: '#F5F5F5', // Light grey bg
+    paddingHorizontal: 16,
+    minHeight: 56, // Standard touch target
+    justifyContent: 'center',
+  },
+  inputBoxFocused: {
+    borderColor: '#FFA000',
+    backgroundColor: '#FFFFFF', // Optional: white on focus
+    borderWidth: 1.5,
+  },
+  inputBoxError: {
+    borderColor: '#D32F2F',
+  },
+  inputBoxDisabled: {
+    backgroundColor: '#EEEEEE',
+    opacity: 0.7,
+  },
+  nativeInput: {
     fontSize: 16,
+    color: '#212121',
+    flex: 1,
   },
-  textArea: {
-    paddingVertical: 8, // Add padding for multiline comfort
+  inputFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginTop: 4,
+    minHeight: 20,
+  },
+  errorText: {
+    color: '#D32F2F',
+    fontSize: 12,
+    paddingHorizontal: 0,
+    marginTop: 0,
+    flex: 1,
+  },
+  charCount: {
+    fontSize: 12,
+    color: '#9E9E9E',
+    marginTop: 4,
+    marginLeft: 8,
+  },
+  charCountError: {
+    color: '#D32F2F',
   },
   button: {
-    marginTop: 24,
-    borderRadius: 16,
+    borderRadius: 12,
     elevation: 4,
-    shadowColor: '#FF8F00',
+    shadowColor: '#FFA000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
-    backgroundColor: '#FF8F00',
+    backgroundColor: '#FFA000', 
   },
   buttonContent: {
     height: 56,
@@ -162,6 +322,7 @@ const styles = StyleSheet.create({
   buttonLabel: {
     fontSize: 16,
     fontWeight: 'bold',
-    letterSpacing: 1,
+    letterSpacing: 1.2,
+    color: '#FFFFFF',
   },
 });

@@ -8,6 +8,7 @@ import { useAuthStore } from '../store/useAuthStore';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useToast } from '../../../core/hooks/useToast';
 import { parseAuthError } from '../../../core/utils/errorParser';
+import { getAuth } from 'firebase/auth';
 
 export const LoginScreen = ({ navigation }: any) => {
   const login = useAuthStore((state) => state.login);
@@ -24,6 +25,21 @@ export const LoginScreen = ({ navigation }: any) => {
       console.log("🟡 [DEBUG] Logging in...");
       await login(data);
       console.log("✅ [DEBUG] Login success.");
+
+      // Log Swagger Token
+      try {
+        const auth = getAuth();
+        const user = auth.currentUser;
+        if (user) {
+          const token = await user.getIdToken();
+          console.log("\n🔑🔑🔑 SWAGGER TOKEN 🔑🔑🔑");
+          console.log(token);
+          console.log("🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑\n");
+        }
+      } catch (tokenErr) {
+        console.log("⚠️ Failed to fetch token for logs", tokenErr);
+      }
+
     } catch (err: any) {
       console.error("🔴 [DEBUG] Login Error:", err);
       showToast(parseAuthError(err), 'error');

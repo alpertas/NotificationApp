@@ -6,16 +6,37 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../auth/store/useAuthStore';
 import { useFocusEffect } from '@react-navigation/native';
 import { useToast } from '../../../core/hooks/useToast';
+import { formatRelativeTime } from '../../../core/utils/dateFormatter';
 
-// Temporary Type
+// Enhanced Notification Type
 interface NotificationItem {
   id: string;
   title: string;
   body: string;
   createdAt: string;
+  deliveryStatus: 'PENDING' | 'SENT' | 'FAILED';
 }
 
+const getStatusColor = (status: NotificationItem['deliveryStatus']) => {
+  switch (status) {
+    case 'SENT': return '#4CAF50'; // Green
+    case 'FAILED': return '#D32F2F'; // Red
+    case 'PENDING': return '#FF9800'; // Orange
+    default: return '#9E9E9E'; // Grey
+  }
+};
+
+const getStatusIcon = (status: NotificationItem['deliveryStatus']) => {
+  switch (status) {
+    case 'SENT': return 'check-circle-outline';
+    case 'FAILED': return 'alert-circle-outline';
+    case 'PENDING': return 'clock-outline';
+    default: return 'bell-outline';
+  }
+};
+
 export const NotificationListScreen = ({ navigation }: any) => {
+  // ... state
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -23,63 +44,59 @@ export const NotificationListScreen = ({ navigation }: any) => {
   const { showToast } = useToast();
 
   const fetchNotifications = useCallback(async (isManual = false) => {
-    // Race Condition Fix: Check if we have a token or user
-    // Now we check useAuthStore which is faster
+    // ... logic
     const token = useAuthStore.getState().token;
-    if (!token) {
-      console.log('⚠️ [NotificationList] No token in store, skipping fetch.');
-      return;
-    }
+    if (!token) return;
 
-    if (isManual) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-    }
+    if (isManual) setRefreshing(true);
+    else setLoading(true);
 
     try {
       const data = await notificationService.getNotifications();
-      setNotifications(Array.isArray(data) ? data : []); 
+      // Ensure data maps to our new interface if backend doesn't provide status yet, default to SENT or PENDING
+      const mappedData = Array.isArray(data) ? data.map((item: any) => ({
+        ...item,
+        deliveryStatus: item.deliveryStatus || 'SENT',
+        createdAt: item.createdAt || item.timestamp || new Date().toISOString() // Handle timestamp field
+      })) : [];
+      setNotifications(mappedData);
+      if (mappedData.length > 0) {
+        console.log("🐛 [DEBUG] First Notification Item:", JSON.stringify(mappedData[0], null, 2));
+      }
     } catch (error) {
+      // ... handlers
       console.log('Error fetching notifications', error);
       showToast('Failed to refresh notifications', 'error');
-      setNotifications([]); // Clear on error or keep old? Clear safe.
+      setNotifications([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }, []);
 
+  // ... hooks
   useFocusEffect(
     useCallback(() => {
-      // Auto-Refetch when screen focuses and we are authenticated
       if (isAuthenticated) {
         fetchNotifications();
       }
-
-      // Cleanup function (optional, runs on blur or unmount)
-      return () => {
-        // setNotifications([]); // Optional: clear list on blur (user pref)
-      };
     }, [isAuthenticated, fetchNotifications])
   );
 
   const renderItem = ({ item }: { item: NotificationItem }) => {
-    // Date formatting helper
-    const formatDate = (dateString: string) => {
-      const date = new Date(dateString);
-      return isNaN(date.getTime()) ? 'Just now' : date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    };
+    const statusColor = getStatusColor(item.deliveryStatus);
+    const statusIcon = getStatusIcon(item.deliveryStatus);
 
     return (
-      <View style={styles.cardContainer}>
-        <View style={styles.cardIconContainer}>
-          <IconButton icon="bell-ring-outline" iconColor="#FF8F00" size={24} />
+      <View style={[styles.cardContainer, { borderLeftColor: statusColor, borderLeftWidth: 4 }]}>
+        <View style={[styles.cardIconContainer, { backgroundColor: statusColor + '20' }]}>
+          {/* +20 for 12% opacity hex */}
+          <IconButton icon={statusIcon} iconColor={statusColor} size={24} />
         </View>
         <View style={styles.cardContent}>
           <View style={styles.cardHeader}>
             <Text variant="titleMedium" style={styles.cardTitle}>{item.title}</Text>
-            <Text variant="bodySmall" style={styles.cardDate}>{formatDate(item.createdAt)}</Text>
+            <Text variant="bodySmall" style={styles.cardDate}>{formatRelativeTime(item.createdAt)}</Text>
           </View>
           <Text variant="bodyMedium" style={styles.cardBody} numberOfLines={2}>{item.body}</Text>
         </View>

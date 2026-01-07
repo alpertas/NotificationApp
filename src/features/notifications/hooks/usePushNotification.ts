@@ -28,10 +28,13 @@ export const usePushNotification = () => {
   const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
+    console.log("🔵 [usePushNotification] Effect Triggered. User state changed:", user?.email || 'No User');
+
     registerForPushNotificationsAsync().then(token => {
+      console.log("🔵 [usePushNotification] registerAsync completed. Token:", token);
       setExpoPushToken(token);
       if (token && user) {
-        // Sync token with backend when user is logged in
+        console.log("🔵 [usePushNotification] Syncing token with backend for user:", user.email);
         notificationService.syncDeviceToken(token);
         storage.setDeviceToken(token);
       }
@@ -46,8 +49,6 @@ export const usePushNotification = () => {
     responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
       const data = response.notification.request.content.data;
       console.log('Notification Tapped:', data);
-      // Here you would navigate to a specific screen based on data
-      // Navigation Ref or Link could be used here
     });
 
     return () => {
@@ -67,6 +68,7 @@ export const usePushNotification = () => {
 };
 
 async function registerForPushNotificationsAsync() {
+  console.log("🚀 [registerForPushNotificationsAsync] Starting...");
   let token;
 
   if (Platform.OS === 'android') {
@@ -78,30 +80,59 @@ async function registerForPushNotificationsAsync() {
     });
   }
 
-  if (Device.isDevice) {
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-    if (finalStatus !== 'granted') {
-      alert('Failed to get push token for push notification!');
-      return;
-    }
-    
-    // Get Project ID from app config for Expo Push
-    const projectId =
-      Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
-      
-    try {
+  // Check if physical device
+  if (!Device.isDevice) {
+    console.log("⚠️ [registerForPushNotificationsAsync] Not a physical device. Push notifications might not work.");
+    // IMPORTANT: For debugging on Simulator, we return null but still log.
+    // return undefined; 
+  }
+
+  // Permission Check
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  console.log("👉 [Permission] Existing Status:", existingStatus);
+
+  let finalStatus = existingStatus;
+  if (existingStatus !== 'granted') {
+    const { status } = await Notifications.requestPermissionsAsync();
+    finalStatus = status;
+    console.log("👉 [Permission] New Status:", finalStatus);
+  }
+
+  if (finalStatus !== 'granted') {
+    console.log("⛔ [Permission] Failed to get push token for push notification! Status:", finalStatus);
+    return;
+  }
+
+  // Get Project ID
+  const projectId =
+    Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
+
+  console.log("👉 [Config] Project ID:", projectId);
+
+  // 1. Get Expo Token
+  try {
+    if (projectId) {
       token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
-    } catch (e) {
-      console.log('Error getting token', e);
+      console.log("🔥 [PushToken] Expo Token:", token);
+    } else {
+      console.log("⚠️ [PushToken] Project ID not found. Attempting to get token without ID (might fail)...");
+      token = (await Notifications.getExpoPushTokenAsync()).data;
+      console.log("🔥 [PushToken] Expo Token:", token);
     }
-  } else {
-    // alert('Must use physical device for Push Notifications');
-    console.log('Must use physical device for Push Notifications');
+  } catch (e) {
+    console.log('⛔ [Error] Failed to get Expo Push Token:', e);
+  }
+
+  // 2. Get Device Token (FCM/APNS) - Independent of Expo Token success
+  try {
+    if (Device.isDevice) {
+      const deviceToken = (await Notifications.getDevicePushTokenAsync()).data;
+      console.log("🔥 [PushToken] Device Token (FCM/APNS):", deviceToken);
+    } else {
+      console.log("⚠️ [PushToken] Skipping Device Token fetch (Simulator)");
+    }
+  } catch (e) {
+    console.log('⛔ [Error] Failed to get Device Push Token:', e);
   }
 
   return token;
