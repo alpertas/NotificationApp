@@ -12,13 +12,17 @@ const api = axios.create({
 // Request Interceptor: Inject Token
 api.interceptors.request.use(
   async (config) => {
-    const token = await storage.getToken();
+    // OLD: const token = await storage.getToken();
+    // NEW: Read from Store directly for synchronous/fast access and cache consistency
+    const { useAuthStore } = require('../../features/auth/store/useAuthStore');
+    const token = useAuthStore.getState().token;
+
     console.log(`🔵 [API Request] ${config.method?.toUpperCase()} ${config.url}`);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
       console.log('🔵 [API Request] Authorization header attached');
     } else {
-      console.log('🔵 [API Request] No token found in storage');
+      console.log('🔵 [API Request] No token found in store');
     }
     return config;
   },

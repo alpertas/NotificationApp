@@ -17,38 +17,41 @@ interface NotificationItem {
 export const NotificationListScreen = ({ navigation }: any) => {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const logout = useAuthStore(state => state.logout);
+  const { logout, isAuthenticated } = useAuthStore();
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     // Race Condition Fix: Check if we have a token or user
-    const token = await import('../../../core/utils/storage').then(m => m.storage.getToken());
+    // Now we check useAuthStore which is faster
+    const token = useAuthStore.getState().token;
     if (!token) {
-      console.log('⚠️ [NotificationList] No token ready, skipping fetch.');
+      console.log('⚠️ [NotificationList] No token in store, skipping fetch.');
       return;
     }
 
     setLoading(true);
     try {
-      // In a real app, you might pagination here
-      // For now assuming the service returns an array
       const data = await notificationService.getNotifications();
-      // Handle array vs object response depending on backend
       setNotifications(Array.isArray(data) ? data : []); 
     } catch (error) {
       console.log('Error fetching notifications', error);
-      // Mock data for demo if backend fails or is empty
-      setNotifications([
-        { id: '1', title: 'Welcome', body: 'Welcome to Notification Center!', createdAt: new Date().toISOString() }
-      ]);
+      setNotifications([]); // Clear on error or keep old? Clear safe.
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
-      fetchNotifications();
-    }, [])
+      // Auto-Refetch when screen focuses and we are authenticated
+      if (isAuthenticated) {
+        fetchNotifications();
+      }
+
+      // Cleanup function (optional, runs on blur or unmount)
+      return () => {
+        // setNotifications([]); // Optional: clear list on blur (user pref)
+      };
+    }, [isAuthenticated, fetchNotifications])
   );
 
   const renderItem = ({ item }: { item: NotificationItem }) => (
@@ -67,7 +70,11 @@ export const NotificationListScreen = ({ navigation }: any) => {
         <Button onPress={logout}>Logout</Button>
       </View>
 
-      {loading ? (
+      {/* 
+        Fix: Always render FlatList to allow Pull-to-Refresh even if list is empty or reloading.
+        If initial loading (and no data), we can show ActivityIndicator, but for refresh we need list.
+      */}
+      {loading && notifications.length === 0 ? (
         <ActivityIndicator animating={true} style={styles.loader} />
       ) : (
         <FlatList
@@ -75,7 +82,7 @@ export const NotificationListScreen = ({ navigation }: any) => {
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           contentContainerStyle={styles.list}
-          ListEmptyComponent={<Text style={styles.empty}>No notifications yet.</Text>}
+            ListEmptyComponent={<Text style={styles.empty}>No notifications yet. Pull to refresh.</Text>}
           refreshing={loading}
           onRefresh={fetchNotifications}
         />

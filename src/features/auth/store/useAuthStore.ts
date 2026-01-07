@@ -12,11 +12,13 @@ interface AuthState {
   register: (credentials: RegisterCredentials) => Promise<void>;
   logout: () => Promise<void>;
   restoreSession: () => Promise<void>;
-  setUser: (user: User | null) => void;
+  setUser: (user: User | null) => Promise<void>;
+  token: string | null;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
+  token: null,
   isLoading: true,
   isAuthenticated: false,
 
@@ -24,7 +26,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true });
     try {
       const user = await authService.login(credentials);
-      set({ user, isAuthenticated: true, isLoading: false });
+      const token = await user.getIdToken();
+      set({ user, token, isAuthenticated: true, isLoading: false });
     } catch (error) {
       set({ isLoading: false });
       throw error;
@@ -35,7 +38,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true });
     try {
       const user = await authService.register(credentials);
-      set({ user, isAuthenticated: true, isLoading: false });
+      const token = await user.getIdToken();
+      set({ user, token, isAuthenticated: true, isLoading: false });
     } catch (error) {
       set({ isLoading: false });
       throw error;
@@ -46,7 +50,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true });
     try {
       await authService.logout();
-      set({ user: null, isAuthenticated: false, isLoading: false });
+      await authService.logout();
+      set({ user: null, token: null, isAuthenticated: false, isLoading: false });
     } catch (error) {
       set({ isLoading: false });
       throw error; 
@@ -59,16 +64,22 @@ export const useAuthStore = create<AuthState>((set) => ({
         const user = authService.getCurrentUser();
       // Listener in Navigation will handle the actual source of truth
       if (user) {
-           set({ user, isAuthenticated: true, isLoading: false });
+        const token = await user.getIdToken();
+        set({ user, token, isAuthenticated: true, isLoading: false });
         } else {
           set({ isLoading: true }); // Keep loading until listener fires
         }
     } catch (error) {
-      set({ user: null, isAuthenticated: false, isLoading: false });
+      set({ user: null, token: null, isAuthenticated: false, isLoading: false });
     }
   },
 
-  setUser: (user) => {
-    set({ user, isAuthenticated: !!user, isLoading: false });
+  setUser: async (user) => {
+    if (user) {
+      const token = await user.getIdToken();
+      set({ user, token, isAuthenticated: true, isLoading: false });
+    } else {
+      set({ user: null, token: null, isAuthenticated: false, isLoading: false });
+    }
   }
 }));
