@@ -5,6 +5,7 @@ import { Provider as PaperProvider } from 'react-native-paper';
 import { Navigation } from './src/app/Navigation';
 import { theme } from './src/core/theme';
 import { usePushNotification } from './src/features/notifications/hooks/usePushNotification';
+import { ToastProvider } from './src/core/providers/ToastProvider';
 
 // Component to handle global hook logic
 const AppContent = () => {
@@ -18,7 +19,9 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <PaperProvider theme={theme}>
-        <AppContent />
+        <ToastProvider>
+          <AppContent />
+        </ToastProvider>
         <StatusBar style="auto" />
       </PaperProvider>
     </SafeAreaProvider>
