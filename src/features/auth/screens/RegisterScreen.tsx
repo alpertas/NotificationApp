@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { TextInput, Button, Text, HelperText } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,8 +8,12 @@ import { parseAuthError } from '../../../core/utils/errorParser';
 import { registerSchema, RegisterCredentials } from '../authTypes';
 import { useAuthStore } from '../store/useAuthStore';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { styles } from './RegisterScreen.styles';
+import { theme } from '../../../core/theme';
+import { RegisterHeader } from '../components/RegisterHeader';
+import { RegisterProps } from '../../../core/navigation/types';
 
-export const RegisterScreen = ({ navigation }: any) => {
+export const RegisterScreen = ({ navigation }: RegisterProps) => {
   const register = useAuthStore((state) => state.register);
   const isLoading = useAuthStore((state) => state.isLoading);
   const { showToast } = useToast();
@@ -22,22 +26,20 @@ export const RegisterScreen = ({ navigation }: any) => {
     try {
       await register(data);
       showToast('Account created successfully!', 'success');
-    } catch (err: any) {
+    } catch (err: unknown) {
       showToast(parseAuthError(err), 'error');
     }
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: '#F7F9FC' }]} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-          <View style={styles.headerContainer}>
-            <Text variant="displaySmall" style={styles.title}>Create Account</Text>
-            <Text variant="bodyLarge" style={styles.subtitle}>Join us today!</Text>
-          </View>
+
+          <RegisterHeader />
 
           <View style={styles.form}>
             <Controller
@@ -52,12 +54,12 @@ export const RegisterScreen = ({ navigation }: any) => {
                   theme={{ roundness: 12 }}
                   style={styles.input}
                   outlineColor="transparent"
-                  activeOutlineColor="#FF8F00"
-                  placeholderTextColor="#9CA3AF"
+                  activeOutlineColor={theme.colors.primary}
+                  placeholderTextColor={theme.colors.textSecondary}
                   error={!!errors.email}
                   autoCapitalize="none"
                   keyboardType="email-address"
-                  left={<TextInput.Icon icon="email-outline" color="#6B7280" />}
+                  left={<TextInput.Icon icon="email-outline" color={theme.colors.textSecondary} />}
                 />
               )}
             />
@@ -79,10 +81,10 @@ export const RegisterScreen = ({ navigation }: any) => {
                   theme={{ roundness: 12 }}
                   style={styles.input}
                   outlineColor="transparent"
-                  activeOutlineColor="#FF8F00"
+                  activeOutlineColor={theme.colors.primary}
                   secureTextEntry
                   error={!!errors.password}
-                  left={<TextInput.Icon icon="lock-outline" color="#6B7280" />}
+                  left={<TextInput.Icon icon="lock-outline" color={theme.colors.textSecondary} />}
                 />
               )}
             />
@@ -108,8 +110,8 @@ export const RegisterScreen = ({ navigation }: any) => {
               onPress={() => navigation.replace('Login')}
               style={styles.linkContainer}
             >
-              <Text variant="bodyMedium" style={{ color: '#6B7280' }}>
-                Already have an account? <Text style={{ color: '#FF8F00', fontWeight: 'bold' }}>Login</Text>
+              <Text variant="bodyMedium" style={{ color: theme.colors.textSecondary }}>
+                Already have an account? <Text style={{ color: theme.colors.primary, fontWeight: 'bold' }}>Login</Text>
               </Text>
             </TouchableOpacity>
           </View>
@@ -118,61 +120,3 @@ export const RegisterScreen = ({ navigation }: any) => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: 24,
-  },
-  headerContainer: {
-    marginBottom: 40,
-    alignItems: 'flex-start',
-  },
-  title: {
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 8,
-  },
-  subtitle: {
-    color: '#6B7280',
-  },
-  form: {
-    width: '100%',
-  },
-  input: {
-    backgroundColor: '#F5F5F5',
-    marginBottom: 4,
-    fontSize: 16,
-  },
-  helperText: {
-    marginBottom: 8,
-    marginTop: -4,
-  },
-  button: {
-    marginTop: 16,
-    borderRadius: 16,
-    elevation: 4, // Shadow for Android
-    shadowColor: '#FF8F00',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    backgroundColor: '#FF8F00',
-  },
-  buttonContent: {
-    height: 56,
-  },
-  buttonLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-  },
-  linkContainer: {
-    marginTop: 24,
-    alignItems: 'center',
-    padding: 8,
-  },
-});

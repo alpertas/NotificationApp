@@ -28,7 +28,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const user = await authService.login(credentials);
       const token = await user.getIdToken();
       set({ user, token, isAuthenticated: true, isLoading: false });
-    } catch (error) {
+    } catch (error: unknown) {
       set({ isLoading: false });
       throw error;
     }
@@ -40,7 +40,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const user = await authService.register(credentials);
       const token = await user.getIdToken();
       set({ user, token, isAuthenticated: true, isLoading: false });
-    } catch (error) {
+    } catch (error: unknown) {
       set({ isLoading: false });
       throw error;
     }
@@ -50,9 +50,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true });
     try {
       await authService.logout();
-      await authService.logout();
       set({ user: null, token: null, isAuthenticated: false, isLoading: false });
-    } catch (error) {
+    } catch (error: unknown) {
       set({ isLoading: false });
       throw error; 
     }
@@ -69,7 +68,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         } else {
           set({ isLoading: true }); // Keep loading until listener fires
         }
-    } catch (error) {
+    } catch (error: unknown) {
       set({ user: null, token: null, isAuthenticated: false, isLoading: false });
     }
   },

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { TextInput, Button, Text, HelperText } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,9 +10,12 @@ import { useToast } from '../../../core/hooks/useToast';
 import { parseAuthError } from '../../../core/utils/errorParser';
 import { getAuth } from 'firebase/auth';
 import { GlobalLoader } from '../../../core/components/GlobalLoader';
-import { theme, spacing } from '../../../core/theme';
+import { theme } from '../../../core/theme';
+import { styles } from './LoginScreen.styles';
+import { LoginHeader } from '../components/LoginHeader';
+import { LoginProps } from '../../../core/navigation/types';
 
-export const LoginScreen = ({ navigation }: any) => {
+export const LoginScreen = ({ navigation }: LoginProps) => {
   const login = useAuthStore((state) => state.login);
   const isLoading = useAuthStore((state) => state.isLoading);
   const { showToast } = useToast();
@@ -36,11 +39,11 @@ export const LoginScreen = ({ navigation }: any) => {
           console.log(token);
           console.log("🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑\n");
         }
-      } catch (tokenErr) {
+      } catch (tokenErr: unknown) {
         console.error("Failed to fetch token for logs", tokenErr);
       }
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Login Error:", err);
       showToast(parseAuthError(err), 'error');
     }
@@ -54,10 +57,8 @@ export const LoginScreen = ({ navigation }: any) => {
         style={{ flex: 1 }}
       >
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-          <View style={styles.headerContainer}>
-            <Text variant="displaySmall" style={styles.title}>Welcome!</Text>
-            <Text variant="bodyLarge" style={styles.subtitle}>Sign in to continue</Text>
-          </View>
+
+          <LoginHeader />
 
           <View style={styles.form}>
             <Controller
@@ -137,61 +138,3 @@ export const LoginScreen = ({ navigation }: any) => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: spacing.l, // 24
-  },
-  headerContainer: {
-    marginBottom: spacing.xl,
-    alignItems: 'flex-start',
-  },
-  title: {
-    fontWeight: 'bold',
-    color: theme.colors.textPrimary,
-    marginBottom: spacing.s,
-  },
-  subtitle: {
-    color: theme.colors.textSecondary,
-  },
-  form: {
-    width: '100%',
-  },
-  input: {
-    backgroundColor: theme.colors.surface,
-    marginBottom: 4,
-    fontSize: 16,
-  },
-  helperText: {
-    marginBottom: spacing.s,
-    marginTop: -4,
-  },
-  button: {
-    marginTop: spacing.m,
-    borderRadius: 16,
-    elevation: 4,
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    backgroundColor: theme.colors.primary,
-  },
-  buttonContent: {
-    height: 56,
-  },
-  buttonLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-  },
-  linkContainer: {
-    marginTop: spacing.l,
-    alignItems: 'center',
-    padding: spacing.s,
-  },
-});
