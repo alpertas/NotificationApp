@@ -6,16 +6,13 @@ The app uses **Clean Architecture** principles, enforcing a strict separation be
 
 <p align="center">
   <img width="200" alt="Register Screen" src="https://github.com/user-attachments/assets/6878fbf0-bec2-4ac2-90a2-a6ea2367f955" />
-  &nbsp;&nbsp;&nbsp;
-
+  &nbsp;
   <img width="200" alt="Login Screen" src="https://github.com/user-attachments/assets/f301ff1c-1c3e-4aa7-8d85-450dea26f0ee" />
-  &nbsp;&nbsp;&nbsp;
-  
+  &nbsp;
   <img width="200" alt="Home Screen - Empty" src="https://github.com/user-attachments/assets/6a51c31c-d572-496c-a59e-f4745e41abdd" />
-  
+  &nbsp;
   <img width="200" alt="Home Screen - List" src="https://github.com/user-attachments/assets/16300fe9-601f-432e-9952-590b8379376e" />
-  &nbsp;&nbsp;&nbsp;
-  
+  &nbsp;
   <img width="200" alt="Schedule Notification" src="https://github.com/user-attachments/assets/b4865040-df0c-48a9-863e-f2aa8a44f7c2" />
 
 </p>
