@@ -1,35 +1,15 @@
 import React from 'react';
 import { View, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { TextInput, Button, Text, HelperText } from 'react-native-paper';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useToast } from '../../../core/hooks/useToast';
-import { parseAuthError } from '../../../core/utils/errorParser';
-import { registerSchema, RegisterCredentials } from '../authTypes';
-import { useAuthStore } from '../store/useAuthStore';
+import { Controller } from 'react-hook-form';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { registerStyles as styles } from '../auth.styles';
 import { theme } from '../../../core/theme';
 import { RegisterHeader } from '../components/RegisterHeader';
-import { RegisterProps } from '../../../core/navigation/types';
+import { useRegister } from '../hooks/useRegister';
 
-export const RegisterScreen = ({ navigation }: RegisterProps) => {
-  const register = useAuthStore((state) => state.register);
-  const isLoading = useAuthStore((state) => state.isLoading);
-  const { showToast } = useToast();
-
-  const { control, handleSubmit, formState: { errors } } = useForm<RegisterCredentials>({
-    resolver: zodResolver(registerSchema),
-  });
-
-  const onSubmit = async (data: RegisterCredentials) => {
-    try {
-      await register(data);
-      showToast('Account created successfully!', 'success');
-    } catch (err: unknown) {
-      showToast(parseAuthError(err), 'error');
-    }
-  };
+export const RegisterScreen = () => {
+  const { control, handleSubmit, errors, onSubmit, isLoading, navigateToLogin } = useRegister();
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
@@ -107,7 +87,7 @@ export const RegisterScreen = ({ navigation }: RegisterProps) => {
             </Button>
 
             <TouchableOpacity
-              onPress={() => navigation.replace('Login')}
+              onPress={navigateToLogin}
               style={styles.linkContainer}
             >
               <Text variant="bodyMedium" style={{ color: theme.colors.textSecondary }}>
