@@ -145,7 +145,7 @@ The app monitors connection status. If you see "No Internet Connection", ensure 
 - **Simulators**: Remote Push Notifications **do not work** on simulators. You must use a physical device for reliable testing.
 - **Android**: Requires Google Play Services.
 
-  ```
+
 
 ## 🔑 Environment Variables (.env)
 
