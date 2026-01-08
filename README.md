@@ -200,7 +200,48 @@ As the project evolves towards a production-grade enterprise application, the fo
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
 3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+  5. Open a Pull Request
+
+## 🚀 Deployment (EAS)
+
+This project is configured for **Expo Application Services (EAS)**.
+
+1.  **Install EAS CLI**
+    ```bash
+    npm install -g eas-cli
+    ```
+
+2.  **Configure Build**
+    ```bash
+    eas build:configure
+    ```
+
+3.  **Create Development Build** (for testing on device)
+    ```bash
+    eas build --profile development --platform ios
+    ```
+
+4.  **Production Build**
+    ```bash
+    eas build --profile production --platform all
+    ```
+
+## 📏 Code Quality & Standards
+
+To ensure code quality, we recommend setting up the following tools (if not already present):
+
+*   **ESLint**: For catching errors and enforcing rules.
+*   **Prettier**: For consistent code formatting.
+*   **Husky**: For pre-commit hooks to ensure no bad code is committed.
+
+*Recommended command:*
+```bash
+npx expo install eslint prettier eslint-config-universe
+```
+
+## 📄 License
+
+Distributed under the **MIT License**. See `LICENSE` for more information.
 
 ---
 Built with ❤️ by [Alper Taş](https://github.com/alpertas)
