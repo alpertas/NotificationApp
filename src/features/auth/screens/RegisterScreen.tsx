@@ -8,7 +8,7 @@ import { parseAuthError } from '../../../core/utils/errorParser';
 import { registerSchema, RegisterCredentials } from '../authTypes';
 import { useAuthStore } from '../store/useAuthStore';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { styles } from './RegisterScreen.styles';
+import { registerStyles as styles } from '../auth.styles';
 import { theme } from '../../../core/theme';
 import { RegisterHeader } from '../components/RegisterHeader';
 import { RegisterProps } from '../../../core/navigation/types';

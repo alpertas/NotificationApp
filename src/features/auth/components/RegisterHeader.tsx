@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { Text } from 'react-native-paper';
-import { styles } from '../screens/RegisterScreen.styles';
+import { registerStyles as styles } from '../auth.styles';
 
 export const RegisterHeader = () => {
   return (

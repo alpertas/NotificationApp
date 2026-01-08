@@ -11,7 +11,7 @@ import { parseAuthError } from '../../../core/utils/errorParser';
 import { getAuth } from 'firebase/auth';
 import { GlobalLoader } from '../../../core/components/GlobalLoader';
 import { theme } from '../../../core/theme';
-import { styles } from './LoginScreen.styles';
+import { loginStyles as styles } from '../auth.styles';
 import { LoginHeader } from '../components/LoginHeader';
 import { LoginProps } from '../../../core/navigation/types';
 

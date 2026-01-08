@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
-import { theme, spacing } from '../../../core/theme';
+import { theme, spacing } from '../../core/theme';
 
-export const styles = StyleSheet.create({
+const commonStyles = {
   container: {
     flex: 1,
   },
@@ -57,4 +57,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     padding: spacing.s,
   },
-});
+} as const;
+
+export const loginStyles = StyleSheet.create(commonStyles);
+export const registerStyles = StyleSheet.create(commonStyles);
