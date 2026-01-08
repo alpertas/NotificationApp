@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { IconButton, Text } from 'react-native-paper';
-import { styles } from '../notification.styles';
+import { createStyles as styles } from '../notification.styles';
 
 interface CreateNotificationHeaderProps {
   onBack: () => void;

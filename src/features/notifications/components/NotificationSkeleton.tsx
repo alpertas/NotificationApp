@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Animated } from 'react-native';
-import { styles } from './NotificationSkeleton.styles';
+import { skeletonStyles as styles } from '../notification.styles';
 
 const SkeletonCard = ({ opacity }: { opacity: Animated.Value }) => {
   return (

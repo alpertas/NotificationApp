@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput as RNTextInput, NativeSyntheticEvent, TextInputFocusEventData, TargetedEvent } from 'react-native';
 import { Text } from 'react-native-paper';
-import { styles } from '../notification.styles';
+import { createStyles as styles } from '../notification.styles';
 import { theme } from '../../../core/theme';
 
 interface CustomLabeledInputProps {

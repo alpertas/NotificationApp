@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { theme, spacing } from '../../core/theme';
 
-export const styles = StyleSheet.create({
+export const createStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -139,4 +139,147 @@ export const styles = StyleSheet.create({
     backgroundColor: theme.colors.disabled,
     borderColor: theme.colors.disabled,
   },
+});
+
+export const listStyles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: theme.colors.background,
+    },
+    header: {
+        paddingHorizontal: spacing.l,
+        paddingVertical: spacing.m,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        backgroundColor: theme.colors.background,
+    },
+    headerTitle: {
+        fontWeight: 'bold',
+        color: theme.colors.textPrimary,
+    },
+    headerSubtitle: {
+        color: theme.colors.textSecondary,
+    },
+    list: {
+        padding: spacing.l,
+        paddingTop: 0,
+    },
+    cardContainer: {
+        backgroundColor: theme.colors.surface,
+        borderRadius: 16,
+        marginBottom: spacing.m,
+        padding: spacing.m,
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        // Shadow
+        elevation: 2,
+        shadowColor: theme.colors.backdrop,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+    },
+    cardIconContainer: {
+        backgroundColor: theme.palette.grey100, // Fallback if not status color
+        borderRadius: 12,
+        marginRight: spacing.m,
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: 48,
+        height: 48,
+    },
+    cardContent: {
+        flex: 1,
+    },
+    cardHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 4,
+    },
+    cardTitle: {
+        fontWeight: 'bold',
+        color: theme.colors.textPrimary,
+        flex: 1,
+        marginRight: spacing.s,
+    },
+    cardDate: {
+        color: theme.colors.textSecondary,
+        fontSize: 12,
+    },
+    cardBody: {
+        color: theme.colors.textSecondary,
+        lineHeight: 20,
+    },
+    loader: {
+        marginTop: 50,
+    },
+    emptyContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 60,
+    },
+    emptyText: {
+        textAlign: 'center',
+        marginTop: spacing.m,
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: theme.colors.textPrimary,
+    },
+    emptySubText: {
+        textAlign: 'center',
+        color: theme.colors.textSecondary,
+        marginTop: spacing.s,
+    },
+    fab: {
+        position: 'absolute',
+        margin: spacing.l,
+        right: 0,
+        bottom: 20,
+        borderRadius: 16,
+        backgroundColor: theme.colors.primary,
+    },
+});
+
+export const skeletonStyles = StyleSheet.create({
+    container: {
+        padding: 16,
+        gap: 12, // Gap between cards
+    },
+    card: {
+        flexDirection: 'row',
+        padding: 16,
+        borderRadius: 16,
+        backgroundColor: theme.colors.surface,
+        marginBottom: 0,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        alignItems: 'center',
+    },
+    iconCircle: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: theme.palette.grey100, // Light gray
+        marginRight: 16,
+    },
+    content: {
+        flex: 1,
+        gap: 8,
+    },
+    titleLine: {
+        height: 16,
+        width: '40%',
+        backgroundColor: theme.palette.grey200, // Gray 200
+        borderRadius: 4,
+    },
+    bodyLine: {
+        height: 12,
+        width: '90%',
+        backgroundColor: theme.palette.grey100, // Gray 100
+        borderRadius: 4,
+    },
 });

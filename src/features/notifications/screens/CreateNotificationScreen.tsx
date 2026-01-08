@@ -11,7 +11,7 @@ import * as Notifications from 'expo-notifications';
 import { theme, spacing } from '../../../core/theme';
 import { GlobalLoader } from '../../../core/components/GlobalLoader';
 import { useNetworkStatus } from '../../../core/hooks/useNetworkStatus';
-import { styles } from '../notification.styles';
+import { createStyles as styles } from '../notification.styles';
 import { CreateNotificationHeader } from '../components/CreateNotificationHeader';
 import { CustomLabeledInput } from '../components/CustomLabeledInput';
 

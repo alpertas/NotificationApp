@@ -9,6 +9,7 @@ import { useToast } from '../../../core/hooks/useToast';
 import { formatRelativeTime } from '../../../core/utils/dateFormatter';
 import { NotificationSkeleton } from '../components/NotificationSkeleton';
 import { theme, spacing } from '../../../core/theme';
+import { listStyles as styles } from '../notification.styles';
 
 // Enhanced Notification Type
 interface NotificationItem {
@@ -154,102 +155,3 @@ export const NotificationListScreen = ({ navigation }: any) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  header: {
-    paddingHorizontal: spacing.l,
-    paddingVertical: spacing.m,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: theme.colors.background,
-  },
-  headerTitle: {
-    fontWeight: 'bold',
-    color: theme.colors.textPrimary,
-  },
-  headerSubtitle: {
-    color: theme.colors.textSecondary,
-  },
-  list: {
-    padding: spacing.l,
-    paddingTop: 0,
-  },
-  cardContainer: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 16,
-    marginBottom: spacing.m,
-    padding: spacing.m,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    // Shadow
-    elevation: 2,
-    shadowColor: theme.colors.backdrop,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-  },
-  cardIconContainer: {
-    backgroundColor: theme.palette.grey100, // Fallback if not status color
-    borderRadius: 12,
-    marginRight: spacing.m,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 48,
-    height: 48,
-  },
-  cardContent: {
-    flex: 1,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  cardTitle: {
-    fontWeight: 'bold',
-    color: theme.colors.textPrimary,
-    flex: 1,
-    marginRight: spacing.s,
-  },
-  cardDate: {
-    color: theme.colors.textSecondary,
-    fontSize: 12,
-  },
-  cardBody: {
-    color: theme.colors.textSecondary,
-    lineHeight: 20,
-  },
-  loader: {
-    marginTop: 50,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 60,
-  },
-  emptyText: {
-    textAlign: 'center',
-    marginTop: spacing.m,
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: theme.colors.textPrimary,
-  },
-  emptySubText: {
-    textAlign: 'center',
-    color: theme.colors.textSecondary,
-    marginTop: spacing.s,
-  },
-  fab: {
-    position: 'absolute',
-    margin: spacing.l,
-    right: 0,
-    bottom: 20,
-    borderRadius: 16,
-    backgroundColor: theme.colors.primary,
-  },
-});
