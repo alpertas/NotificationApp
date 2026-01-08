@@ -5,9 +5,10 @@ import { createStyles as styles } from '../notification.styles';
 
 interface CreateNotificationHeaderProps {
   onBack: () => void;
+  title?: string;
 }
 
-export const CreateNotificationHeader = ({ onBack }: CreateNotificationHeaderProps) => {
+export const CreateNotificationHeader = ({ onBack, title = "New Notification" }: CreateNotificationHeaderProps) => {
   return (
     <View style={styles.header}>
       <IconButton
@@ -17,7 +18,7 @@ export const CreateNotificationHeader = ({ onBack }: CreateNotificationHeaderPro
         style={styles.backButton}
       />
       <View>
-        <Text variant="titleLarge" style={styles.headerTitle}>New Notification</Text>
+        <Text variant="titleLarge" style={styles.headerTitle}>{title}</Text>
         <Text variant="bodySmall" style={styles.headerSubtitle}>Compose a message to yourself</Text>
       </View>
     </View>

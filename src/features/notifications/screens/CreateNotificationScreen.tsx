@@ -17,18 +17,31 @@ import { CustomLabeledInput } from '../components/CustomLabeledInput';
 
 import { CreateNotificationProps } from '../../../core/navigation/types';
 
-export const CreateNotificationScreen = ({ navigation }: CreateNotificationProps) => {
+export const CreateNotificationScreen = ({ navigation, route }: CreateNotificationProps) => {
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
   const { isConnected } = useNetworkStatus();
 
-  const { control, handleSubmit, formState: { errors }, watch, getValues } = useForm<CreateNotificationFormData>({
+  // Get initialData from route params if available
+  const initialData = route.params?.initialData;
+
+  const { control, handleSubmit, formState: { errors }, watch, getValues, reset } = useForm<CreateNotificationFormData>({
     resolver: zodResolver(createNotificationSchema),
     defaultValues: {
-      title: '',
-      body: ''
+      title: initialData?.title || '',
+      body: initialData?.body || ''
     }
   });
+
+  // Populate form if initialData exists (e.g. re-opening a draft)
+  React.useEffect(() => {
+    if (initialData) {
+      reset({
+        title: initialData.title,
+        body: initialData.body
+      });
+    }
+  }, [initialData, reset]);
 
   const titleValue = watch('title');
   const bodyValue = watch('body');
@@ -118,7 +131,10 @@ export const CreateNotificationScreen = ({ navigation }: CreateNotificationProps
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
 
-            <CreateNotificationHeader onBack={() => navigation.goBack()} />
+            <CreateNotificationHeader
+              onBack={() => navigation.goBack()}
+              title={initialData ? "Edit Draft" : "New Notification"}
+            />
 
             <View style={styles.formContainer}>
 

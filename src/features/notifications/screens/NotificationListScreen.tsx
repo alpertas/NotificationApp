@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, FlatList, StyleSheet } from 'react-native';
+import { View, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text, FAB, IconButton } from 'react-native-paper';
 import { notificationService } from '../services/notificationService';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -57,11 +57,16 @@ export const NotificationListScreen = ({ navigation }: any) => {
     try {
       const data = await notificationService.getNotifications();
       // Ensure data maps to our new interface if backend doesn't provide status yet, default to SENT or PENDING
-      const mappedData = Array.isArray(data) ? data.map((item: any) => ({
-        ...item,
-        deliveryStatus: item.deliveryStatus || 'SENT',
-        createdAt: item.createdAt || item.timestamp || new Date().toISOString() // Handle timestamp field
-      })) : [];
+      const mappedData = Array.isArray(data) ? data.map((item: any) => {
+        // Determine status from various possible fields
+        const rawStatus = item.deliveryStatus || item.status || item.data?.status || 'SENT';
+
+        return {
+          ...item,
+          deliveryStatus: rawStatus.toUpperCase(),
+          createdAt: item.createdAt || item.timestamp || new Date().toISOString()
+        };
+      }) : [];
       // Sort by createdAt descending (newest first)
       mappedData.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
@@ -89,7 +94,19 @@ export const NotificationListScreen = ({ navigation }: any) => {
     const statusIcon = getStatusIcon(item.deliveryStatus);
 
     return (
-      <View style={[styles.cardContainer, { borderLeftColor: statusColor, borderLeftWidth: 4 }]}>
+      <TouchableOpacity
+        style={[styles.cardContainer, { borderLeftColor: statusColor, borderLeftWidth: 4 }]}
+        onPress={() => {
+          console.log(`[NotificationList] Clicked item: ${item.id}, Status: ${item.deliveryStatus}`);
+          // Allow editing Drafts and Pending (stuck) notifications
+          if (item.deliveryStatus === 'DRAFT' || item.deliveryStatus === 'PENDING') {
+            navigation.navigate('CreateNotification', {
+              initialData: { title: item.title, body: item.body }
+            });
+          }
+        }}
+        activeOpacity={0.7}
+      >
         <View style={[styles.cardIconContainer, { backgroundColor: statusColor + '20' }]}>
           {/* +20 for 12% opacity hex */}
           <IconButton icon={statusIcon} iconColor={statusColor} size={24} />
@@ -101,7 +118,7 @@ export const NotificationListScreen = ({ navigation }: any) => {
           </View>
           <Text variant="bodyMedium" style={styles.cardBody} numberOfLines={2} ellipsizeMode="tail">{item.body}</Text>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 

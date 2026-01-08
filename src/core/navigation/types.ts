@@ -4,7 +4,7 @@ export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   NotificationList: undefined;
-  CreateNotification: undefined;
+  CreateNotification: { initialData?: { title: string; body: string } } | undefined;
 };
 
 export type LoginProps = NativeStackScreenProps<RootStackParamList, 'Login'>;
