@@ -4,15 +4,15 @@ export interface NotificationPayload {
   to: string; // Token or Topic
   title: string;
   body: string;
-  data?: any;
+  data?: Record<string, unknown>;
 }
 
 export const notificationService = {
   // Sync FCM Token with Backend
   syncDeviceToken: async (token: string) => {
     try {
-      await api.post('/auth/sync-token', { fcmToken: token });
-    } catch (error) {
+      await api.post<void>('/auth/sync-token', { fcmToken: token });
+    } catch (error: unknown) {
       console.error('Failed to sync device token', error);
       // Silent fail or retry logic could go here
     }
@@ -20,20 +20,20 @@ export const notificationService = {
 
   // Get Notifications List
   getNotifications: async () => {
-    const response = await api.get('/notifications');
+    // Define expected response type if possible, for now unknown or any []
+    const response = await api.get<any[]>('/notifications');
     return response.data;
   },
 
   // Create Notification (Send to Backend)
-  // Create Notification (Send to Backend)
   createNotification: async (payload: NotificationPayload) => {
-    const response = await api.post('/notifications/send', payload);
+    const response = await api.post<any>('/notifications/send', payload);
     return response.data;
   },
 
   // Save as Draft (DB Only)
   saveAsDraft: async (payload: NotificationPayload) => {
-    const response = await api.post('/notifications', payload);
+    const response = await api.post<any>('/notifications', payload);
     return response.data;
   }
 };

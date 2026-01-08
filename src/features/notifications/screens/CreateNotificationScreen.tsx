@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TextInput as RNTextInput } from 'react-native';
-import { Button, Text, IconButton, HelperText } from 'react-native-paper';
+import { View, ScrollView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { Button, Text, HelperText } from 'react-native-paper';
 import { useToast } from '../../../core/hooks/useToast';
 import { notificationService } from '../services/notificationService';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,60 +11,13 @@ import * as Notifications from 'expo-notifications';
 import { theme, spacing } from '../../../core/theme';
 import { GlobalLoader } from '../../../core/components/GlobalLoader';
 import { useNetworkStatus } from '../../../core/hooks/useNetworkStatus';
+import { styles } from '../notification.styles';
+import { CreateNotificationHeader } from '../components/CreateNotificationHeader';
+import { CustomLabeledInput } from '../components/CustomLabeledInput';
 
-// Reusable Custom Input Component with External Label
-const CustomLabeledInput = ({
-  label,
-  value,
-  onChangeText,
-  onBlur,
-  placeholder,
-  error,
-  multiline = false,
-  numberOfLines = 1,
-  disabled = false,
-}: any) => {
-  const [isFocused, setIsFocused] = useState(false);
+import { CreateNotificationProps } from '../../../core/navigation/types';
 
-  const handleFocus = () => setIsFocused(true);
-  const handleBlur = (e: any) => {
-    setIsFocused(false);
-    onBlur && onBlur(e);
-  };
-
-  return (
-    <View style={styles.inputWrapper}>
-      <Text style={styles.inputLabel}>{label}</Text>
-      <View
-        style={[
-          styles.inputBox,
-          isFocused && styles.inputBoxFocused,
-          error && styles.inputBoxError,
-          disabled && styles.inputBoxDisabled,
-          multiline && { height: 120 }
-        ]}
-      >
-        <RNTextInput
-          value={value}
-          onChangeText={onChangeText}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          placeholder={placeholder}
-          placeholderTextColor={theme.colors.textSecondary}
-          style={[
-            styles.nativeInput,
-            multiline && { textAlignVertical: 'top', paddingTop: 12 }
-          ]}
-          multiline={multiline}
-          numberOfLines={numberOfLines}
-          editable={!disabled}
-        />
-      </View>
-    </View>
-  );
-};
-
-export const CreateNotificationScreen = ({ navigation }: any) => {
+export const CreateNotificationScreen = ({ navigation }: CreateNotificationProps) => {
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
   const { isConnected } = useNetworkStatus();
@@ -165,19 +118,7 @@ export const CreateNotificationScreen = ({ navigation }: any) => {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
 
-            {/* Header */}
-            <View style={styles.header}>
-              <IconButton
-                icon="arrow-left"
-                size={24}
-                onPress={() => navigation.goBack()}
-                style={styles.backButton}
-              />
-              <View>
-                <Text variant="titleLarge" style={styles.headerTitle}>New Notification</Text>
-                <Text variant="bodySmall" style={styles.headerSubtitle}>Compose a message to yourself</Text>
-              </View>
-            </View>
+            <CreateNotificationHeader onBack={() => navigation.goBack()} />
 
             <View style={styles.formContainer}>
 
@@ -286,143 +227,3 @@ export const CreateNotificationScreen = ({ navigation }: any) => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 40,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.m,
-    paddingVertical: spacing.m,
-    marginBottom: spacing.s,
-  },
-  backButton: {
-    marginRight: spacing.s,
-    marginLeft: -spacing.s,
-  },
-  headerTitle: {
-    fontWeight: 'bold',
-    color: theme.colors.textPrimary,
-  },
-  headerSubtitle: {
-    color: theme.colors.textSecondary,
-  },
-  formContainer: {
-    paddingHorizontal: spacing.l,
-  },
-  card: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 16,
-    padding: spacing.l,
-    elevation: 2,
-    shadowColor: theme.colors.backdrop, // Using backdrop or black
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    marginBottom: spacing.l,
-    borderWidth: 1,
-    borderColor: theme.palette.grey200,
-  },
-  inputContainer: {
-    marginBottom: spacing.l,
-  },
-  inputWrapper: {
-    // Wrapper around label and input box
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: theme.colors.textPrimary,
-    marginBottom: 6,
-    marginLeft: 2,
-  },
-  inputBox: {
-    borderWidth: 1,
-    borderColor: theme.palette.grey300,
-    borderRadius: 12,
-    backgroundColor: theme.colors.background, // Or surface if card is surface
-    paddingHorizontal: spacing.m,
-    minHeight: 56,
-    justifyContent: 'center',
-  },
-  inputBoxFocused: {
-    borderColor: theme.colors.primary,
-    backgroundColor: theme.colors.background,
-    borderWidth: 1.5,
-  },
-  inputBoxError: {
-    borderColor: theme.colors.error,
-  },
-  inputBoxDisabled: {
-    backgroundColor: theme.palette.grey200,
-    opacity: 0.7,
-  },
-  nativeInput: {
-    fontSize: 16,
-    color: theme.colors.textPrimary,
-    flex: 1,
-  },
-  inputFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginTop: 4,
-    minHeight: 20,
-  },
-  errorText: {
-    color: theme.colors.error,
-    fontSize: 12,
-    paddingHorizontal: 0,
-    marginTop: 0,
-    flex: 1,
-  },
-  charCount: {
-    fontSize: 12,
-    color: theme.colors.textSecondary,
-    marginTop: 4,
-    marginLeft: 8,
-  },
-  charCountError: {
-    color: theme.colors.error,
-  },
-  button: {
-    borderRadius: 12,
-    elevation: 4,
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    backgroundColor: theme.colors.primary,
-  },
-  testButton: {
-    borderRadius: 12,
-    borderColor: theme.colors.primary,
-    borderWidth: 1,
-  },
-  draftButton: {
-    borderRadius: 12,
-    borderColor: theme.palette.grey300,
-    backgroundColor: theme.palette.grey100,
-    borderWidth: 1,
-  },
-  buttonContent: {
-    height: 56,
-  },
-  buttonLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    letterSpacing: 1.2,
-    color: theme.colors.onPrimary,
-  },
-  disabledButton: {
-    backgroundColor: theme.colors.disabled,
-    borderColor: theme.colors.disabled,
-  },
-});
