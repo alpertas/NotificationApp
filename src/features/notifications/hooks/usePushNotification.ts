@@ -31,8 +31,6 @@ export const usePushNotification = () => {
     registerForPushNotificationsAsync().then(token => {
       setExpoPushToken(token);
       if (token && user) {
-        // TODO: Remove in production
-        console.log("🔵 [usePushNotification] Syncing token with backend for user:", user.email);
         notificationService.syncDeviceToken(token);
         storage.setDeviceToken(token);
       }
@@ -45,9 +43,7 @@ export const usePushNotification = () => {
 
     // Background/Killed Response Listener (Tap)
     responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
-      const data = response.notification.request.content.data;
-      // TODO: Remove in production
-      console.log('Notification Tapped:', data);
+      // Handle notification tap if needed
     });
 
     return () => {
@@ -101,22 +97,18 @@ async function registerForPushNotificationsAsync() {
   try {
     const projectId = Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
     const expoToken = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
-    // TODO: Remove in production
-    console.log("🔥 [PushToken] Expo Token:", expoToken);
     token = expoToken;
   } catch (e) {
-    console.error('Failed to get Expo Push Token:', e);
+    // console.log('Failed to get Expo Push Token:', e);
   }
 
   // 2. Get Device Token (FCM/APNS)
   try {
     if (Device.isDevice) {
-      const deviceTokenRes = await Notifications.getDevicePushTokenAsync();
-      // TODO: Remove in production
-      console.log("🔥 [PushToken] Device Token (FCM/APNS):", deviceTokenRes.data);
+      await Notifications.getDevicePushTokenAsync();
     }
   } catch (e) {
-    console.error('Failed to get Device Push Token:', e);
+    // console.error('Failed to get Device Push Token:', e);
   }
 
   return token;

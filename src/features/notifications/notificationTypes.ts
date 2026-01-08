@@ -12,3 +12,12 @@ export const createNotificationSchema = z.object({
 });
 
 export type CreateNotificationFormData = z.infer<typeof createNotificationSchema>;
+
+export interface NotificationItem {
+  id: string;
+  title: string;
+  body: string;
+  createdAt: string;
+  deliveryStatus: 'PENDING' | 'SENT' | 'FAILED' | 'DRAFT';
+  data?: any;
+}

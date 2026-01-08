@@ -30,13 +30,10 @@ export const useLogin = () => {
         const user = auth.currentUser;
         if (user) {
           const token = await user.getIdToken();
-          // TODO: Remove in production
-          console.log("\n🔑🔑🔑 SWAGGER TOKEN 🔑🔑🔑");
-          console.log(token);
-          console.log("🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑\n");
+          // Token retrieval for potential future use or debugging if re-enabled
         }
       } catch (tokenErr: unknown) {
-        console.error("Failed to fetch token for logs", tokenErr);
+        // Silent fail
       }
 
     } catch (err: unknown) {
