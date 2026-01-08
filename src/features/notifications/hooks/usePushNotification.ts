@@ -28,12 +28,10 @@ export const usePushNotification = () => {
   const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
-    console.log("🔵 [usePushNotification] Effect Triggered. User state changed:", user?.email || 'No User');
-
     registerForPushNotificationsAsync().then(token => {
-      console.log("🔵 [usePushNotification] registerAsync completed. Token:", token);
       setExpoPushToken(token);
       if (token && user) {
+        // TODO: Remove in production
         console.log("🔵 [usePushNotification] Syncing token with backend for user:", user.email);
         notificationService.syncDeviceToken(token);
         storage.setDeviceToken(token);
@@ -48,6 +46,7 @@ export const usePushNotification = () => {
     // Background/Killed Response Listener (Tap)
     responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
       const data = response.notification.request.content.data;
+      // TODO: Remove in production
       console.log('Notification Tapped:', data);
     });
 
@@ -68,7 +67,6 @@ export const usePushNotification = () => {
 };
 
 async function registerForPushNotificationsAsync() {
-  console.log("🚀 [registerForPushNotificationsAsync] Starting...");
   let token;
 
   if (Platform.OS === 'android') {
@@ -82,7 +80,7 @@ async function registerForPushNotificationsAsync() {
 
   // Check if physical device
   if (!Device.isDevice) {
-    console.log("⚠️ [registerForPushNotificationsAsync] Not a physical device. Push notifications might not work.");
+    // console.warn("Not a physical device. Push notifications might not work.");
     // return undefined;
   }
 
@@ -95,32 +93,30 @@ async function registerForPushNotificationsAsync() {
   }
 
   if (finalStatus !== 'granted') {
-    console.log("⛔ [Permission] Failed to get push token for push notification! Status:", finalStatus);
+    // console.error("Failed to get push token for push notification!");
     return;
   }
 
-  // 1. Get Expo Token (Good for troubleshooting)
+  // 1. Get Expo Token
   try {
     const projectId = Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
     const expoToken = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
+    // TODO: Remove in production
     console.log("🔥 [PushToken] Expo Token:", expoToken);
-    token = expoToken; // Default to Expo Token
+    token = expoToken;
   } catch (e) {
-    console.log('⛔ [Error] Failed to get Expo Push Token:', e);
+    console.error('Failed to get Expo Push Token:', e);
   }
 
-  // 2. Get Device Token (FCM/APNS) - Requested for Sync
+  // 2. Get Device Token (FCM/APNS)
   try {
     if (Device.isDevice) {
       const deviceTokenRes = await Notifications.getDevicePushTokenAsync();
+      // TODO: Remove in production
       console.log("🔥 [PushToken] Device Token (FCM/APNS):", deviceTokenRes.data);
-      // If user specifically requested FCM/Device token sync:
-      // token = deviceTokenRes.data;
-      // NOTE: Keeping Expo Token as primary for now as it's more standard for Expo apps,
-      // but verified Device Token fetch works.
     }
   } catch (e) {
-    console.log('⛔ [Error] Failed to get Device Push Token:', e);
+    console.error('Failed to get Device Push Token:', e);
   }
 
   return token;

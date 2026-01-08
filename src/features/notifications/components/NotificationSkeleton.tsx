@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
+import { theme } from '../../../core/theme';
 
 const SkeletonCard = ({ opacity }: { opacity: Animated.Value }) => {
   return (
@@ -55,7 +56,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 16,
     borderRadius: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.surface,
     marginBottom: 0,
     elevation: 2,
     shadowColor: '#000',
@@ -68,7 +69,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#F3F4F6', // Light gray
+    backgroundColor: theme.palette.grey100, // Light gray
     marginRight: 16,
   },
   content: {
@@ -78,13 +79,13 @@ const styles = StyleSheet.create({
   titleLine: {
     height: 16,
     width: '40%',
-    backgroundColor: '#E5E7EB', // Gray 200
+    backgroundColor: theme.palette.grey200, // Gray 200
     borderRadius: 4,
   },
   bodyLine: {
     height: 12,
     width: '90%',
-    backgroundColor: '#F3F4F6', // Gray 100
+    backgroundColor: theme.palette.grey100, // Gray 100
     borderRadius: 4,
   },
 });

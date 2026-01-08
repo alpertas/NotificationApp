@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { View, FlatList, StyleSheet } from 'react-native';
-import { Text, FAB, ActivityIndicator, IconButton } from 'react-native-paper';
+import { Text, FAB, IconButton } from 'react-native-paper';
 import { notificationService } from '../services/notificationService';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../auth/store/useAuthStore';
@@ -8,6 +8,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useToast } from '../../../core/hooks/useToast';
 import { formatRelativeTime } from '../../../core/utils/dateFormatter';
 import { NotificationSkeleton } from '../components/NotificationSkeleton';
+import { theme, spacing } from '../../../core/theme';
 
 // Enhanced Notification Type
 interface NotificationItem {
@@ -20,11 +21,11 @@ interface NotificationItem {
 
 const getStatusColor = (status: NotificationItem['deliveryStatus']) => {
   switch (status) {
-    case 'SENT': return '#4CAF50'; // Green
-    case 'FAILED': return '#D32F2F'; // Red
-    case 'PENDING': return '#FF9800'; // Orange
-    case 'DRAFT': return '#9E9E9E'; // Grey
-    default: return '#9E9E9E'; // Grey
+    case 'SENT': return theme.colors.success; // Green (Success)
+    case 'FAILED': return theme.colors.error; // Red (Error)
+    case 'PENDING': return theme.colors.primary; // Orange (Primary)
+    case 'DRAFT': return theme.colors.textSecondary; // Grey
+    default: return theme.colors.textSecondary;
   }
 };
 
@@ -39,7 +40,6 @@ const getStatusIcon = (status: NotificationItem['deliveryStatus']) => {
 };
 
 export const NotificationListScreen = ({ navigation }: any) => {
-  // ... state
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -47,7 +47,6 @@ export const NotificationListScreen = ({ navigation }: any) => {
   const { showToast } = useToast();
 
   const fetchNotifications = useCallback(async (isManual = false) => {
-    // ... logic
     const token = useAuthStore.getState().token;
     if (!token) return;
 
@@ -66,11 +65,7 @@ export const NotificationListScreen = ({ navigation }: any) => {
       mappedData.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
       setNotifications(mappedData);
-      if (mappedData.length > 0) {
-        console.log("🐛 [DEBUG] First Notification Item:", JSON.stringify(mappedData[0], null, 2));
-      }
     } catch (error) {
-      // ... handlers
       console.log('Error fetching notifications', error);
       showToast('Failed to refresh notifications', 'error');
       setNotifications([]);
@@ -80,7 +75,6 @@ export const NotificationListScreen = ({ navigation }: any) => {
     }
   }, []);
 
-  // ... hooks
   useFocusEffect(
     useCallback(() => {
       if (isAuthenticated) {
@@ -121,16 +115,12 @@ export const NotificationListScreen = ({ navigation }: any) => {
           icon="logout"
           mode="contained-tonal"
           onPress={logout}
-          iconColor="#B00020"
-          containerColor="#FFEBEE"
+          iconColor={theme.colors.error}
+          containerColor={theme.palette.grey100}
           size={24}
         />
       </View>
 
-      {/* 
-        Fix: Always render FlatList to allow Pull-to-Refresh even if list is empty or reloading.
-        If initial loading (and no data), we can show ActivityIndicator, but for refresh we need list.
-      */}
       {loading && notifications.length === 0 ? (
         <NotificationSkeleton />
       ) : (
@@ -141,7 +131,7 @@ export const NotificationListScreen = ({ navigation }: any) => {
           contentContainerStyle={styles.list}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <IconButton icon="bell-sleep-outline" size={64} iconColor="#E5E7EB" />
+                <IconButton icon="bell-sleep-outline" size={64} iconColor={theme.colors.disabled} />
                 <Text style={styles.emptyText}>No notifications yet.</Text>
                 <Text style={styles.emptySubText}>Pull down to refresh</Text>
               </View>
@@ -158,7 +148,7 @@ export const NotificationListScreen = ({ navigation }: any) => {
         onPress={() => navigation.navigate('CreateNotification')}
         label="New"
         color="white"
-        theme={{ colors: { primaryContainer: '#FF8F00' } }}
+        theme={{ colors: { primaryContainer: theme.colors.primary } }}
       />
     </SafeAreaView>
   );
@@ -167,45 +157,45 @@ export const NotificationListScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F9FC',
+    backgroundColor: theme.colors.background,
   },
   header: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: spacing.l,
+    paddingVertical: spacing.m,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#F7F9FC', // Seamless header
+    backgroundColor: theme.colors.background,
   },
   headerTitle: {
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: theme.colors.textPrimary,
   },
   headerSubtitle: {
-    color: '#6B7280',
+    color: theme.colors.textSecondary,
   },
   list: {
-    padding: 20,
+    padding: spacing.l,
     paddingTop: 0,
   },
   cardContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.surface,
     borderRadius: 16,
-    marginBottom: 16,
-    padding: 16,
+    marginBottom: spacing.m,
+    padding: spacing.m,
     flexDirection: 'row',
     alignItems: 'flex-start',
     // Shadow
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: theme.colors.backdrop,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
   },
   cardIconContainer: {
-    backgroundColor: '#FFF3E0', // Light Orange
+    backgroundColor: theme.palette.grey100, // Fallback if not status color
     borderRadius: 12,
-    marginRight: 16,
+    marginRight: spacing.m,
     justifyContent: 'center',
     alignItems: 'center',
     width: 48,
@@ -222,16 +212,16 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: theme.colors.textPrimary,
     flex: 1,
-    marginRight: 8,
+    marginRight: spacing.s,
   },
   cardDate: {
-    color: '#9CA3AF',
+    color: theme.colors.textSecondary,
     fontSize: 12,
   },
   cardBody: {
-    color: '#4B5563',
+    color: theme.colors.textSecondary,
     lineHeight: 20,
   },
   loader: {
@@ -244,21 +234,22 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     textAlign: 'center',
-    marginTop: 16,
+    marginTop: spacing.m,
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#374151',
+    color: theme.colors.textPrimary,
   },
   emptySubText: {
     textAlign: 'center',
-    color: '#9CA3AF',
-    marginTop: 8,
+    color: theme.colors.textSecondary,
+    marginTop: spacing.s,
   },
   fab: {
     position: 'absolute',
-    margin: 20,
+    margin: spacing.l,
     right: 0,
     bottom: 20,
     borderRadius: 16,
+    backgroundColor: theme.colors.primary,
   },
 });

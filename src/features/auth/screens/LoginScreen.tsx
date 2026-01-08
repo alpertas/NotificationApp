@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import { TextInput, Button, Text, HelperText, useTheme } from 'react-native-paper';
+import { TextInput, Button, Text, HelperText } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, LoginCredentials } from '../authTypes';
@@ -10,12 +10,12 @@ import { useToast } from '../../../core/hooks/useToast';
 import { parseAuthError } from '../../../core/utils/errorParser';
 import { getAuth } from 'firebase/auth';
 import { GlobalLoader } from '../../../core/components/GlobalLoader';
+import { theme, spacing } from '../../../core/theme';
 
 export const LoginScreen = ({ navigation }: any) => {
   const login = useAuthStore((state) => state.login);
   const isLoading = useAuthStore((state) => state.isLoading);
   const { showToast } = useToast();
-  const theme = useTheme();
 
   const { control, handleSubmit, formState: { errors } } = useForm<LoginCredentials>({
     resolver: zodResolver(loginSchema),
@@ -23,9 +23,7 @@ export const LoginScreen = ({ navigation }: any) => {
 
   const onSubmit = async (data: LoginCredentials) => {
     try {
-      console.log("🟡 [DEBUG] Logging in...");
       await login(data);
-      console.log("✅ [DEBUG] Login success.");
 
       // Log Swagger Token
       try {
@@ -33,22 +31,23 @@ export const LoginScreen = ({ navigation }: any) => {
         const user = auth.currentUser;
         if (user) {
           const token = await user.getIdToken();
+          // TODO: Remove in production
           console.log("\n🔑🔑🔑 SWAGGER TOKEN 🔑🔑🔑");
           console.log(token);
           console.log("🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑\n");
         }
       } catch (tokenErr) {
-        console.log("⚠️ Failed to fetch token for logs", tokenErr);
+        console.error("Failed to fetch token for logs", tokenErr);
       }
 
     } catch (err: any) {
-      console.error("🔴 [DEBUG] Login Error:", err);
+      console.error("Login Error:", err);
       showToast(parseAuthError(err), 'error');
     }
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: '#F7F9FC' }]} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
       <GlobalLoader visible={isLoading} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -73,12 +72,12 @@ export const LoginScreen = ({ navigation }: any) => {
                   theme={{ roundness: 12 }}
                   style={styles.input}
                   outlineColor="transparent"
-                  activeOutlineColor="#FF8F00"
-                  placeholderTextColor="#9CA3AF"
+                  activeOutlineColor={theme.colors.primary}
+                  placeholderTextColor={theme.colors.textSecondary}
                   error={!!errors.email}
                   autoCapitalize="none"
                   keyboardType="email-address"
-                  left={<TextInput.Icon icon="email-outline" color="#6B7280" />}
+                  left={<TextInput.Icon icon="email-outline" color={theme.colors.textSecondary} />}
                 />
               )}
             />
@@ -100,10 +99,10 @@ export const LoginScreen = ({ navigation }: any) => {
                   theme={{ roundness: 12 }}
                   style={styles.input}
                   outlineColor="transparent"
-                  activeOutlineColor="#FF8F00"
+                  activeOutlineColor={theme.colors.primary}
                   secureTextEntry
                   error={!!errors.password}
-                  left={<TextInput.Icon icon="lock-outline" color="#6B7280" />}
+                  left={<TextInput.Icon icon="lock-outline" color={theme.colors.textSecondary} />}
                 />
               )}
             />
@@ -128,8 +127,8 @@ export const LoginScreen = ({ navigation }: any) => {
               onPress={() => navigation.replace('Register')}
               style={styles.linkContainer}
             >
-              <Text variant="bodyMedium" style={{ color: '#6B7280' }}>
-                Don't have an account? <Text style={{ color: '#FF8F00', fontWeight: 'bold' }}>Sign Up</Text>
+              <Text variant="bodyMedium" style={{ color: theme.colors.textSecondary }}>
+                Don't have an account? <Text style={{ color: theme.colors.primary, fontWeight: 'bold' }}>Sign Up</Text>
               </Text>
             </TouchableOpacity>
           </View>
@@ -146,41 +145,41 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 24,
+    padding: spacing.l, // 24
   },
   headerContainer: {
-    marginBottom: 40,
+    marginBottom: spacing.xl,
     alignItems: 'flex-start',
   },
   title: {
     fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 8,
+    color: theme.colors.textPrimary,
+    marginBottom: spacing.s,
   },
   subtitle: {
-    color: '#6B7280',
+    color: theme.colors.textSecondary,
   },
   form: {
     width: '100%',
   },
   input: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: theme.colors.surface,
     marginBottom: 4,
     fontSize: 16,
   },
   helperText: {
-    marginBottom: 8,
+    marginBottom: spacing.s,
     marginTop: -4,
   },
   button: {
-    marginTop: 16,
+    marginTop: spacing.m,
     borderRadius: 16,
-    elevation: 4, // Shadow for Android
-    shadowColor: '#FF8F00',
+    elevation: 4,
+    shadowColor: theme.colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
-    backgroundColor: '#FF8F00',
+    backgroundColor: theme.colors.primary,
   },
   buttonContent: {
     height: 56,
@@ -191,8 +190,8 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   linkContainer: {
-    marginTop: 24,
+    marginTop: spacing.l,
     alignItems: 'center',
-    padding: 8,
+    padding: spacing.s,
   },
 });

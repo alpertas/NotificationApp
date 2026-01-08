@@ -12,7 +12,6 @@ export const notificationService = {
   syncDeviceToken: async (token: string) => {
     try {
       await api.post('/auth/sync-token', { fcmToken: token });
-      console.log('✅ [NotificationService] Token synced with backend');
     } catch (error) {
       console.error('Failed to sync device token', error);
       // Silent fail or retry logic could go here

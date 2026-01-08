@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Modal, ActivityIndicator } from 'react-native';
+import { theme } from '../theme';
 
 interface GlobalLoaderProps {
   visible: boolean;
@@ -15,7 +16,7 @@ export const GlobalLoader = ({ visible }: GlobalLoaderProps) => {
     >
       <View style={styles.container}>
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color="#FF8F00" />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
       </View>
     </Modal>
@@ -30,7 +31,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loaderContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.surface,
     padding: 24,
     borderRadius: 16,
     elevation: 4,
