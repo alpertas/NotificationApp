@@ -140,6 +140,60 @@ The app monitors connection status. If you see "No Internet Connection", ensure 
 - **Simulators**: Remote Push Notifications **do not work** on simulators. You must use a physical device for reliable testing.
 - **Android**: Requires Google Play Services.
 
+  ```
+
+## 🔑 Environment Variables (.env)
+
+The application relies on `expo-constants` and `dotenv` behavior. Create a `.env` file in the root.
+
+| Variable | Description | Example Value |
+|----------|-------------|---------------|
+| `EXPO_PUBLIC_API_URL` | Backend API Base URL | `http://192.168.1.5:3000` |
+| `EXPO_PUBLIC_FIREBASE_API_KEY` | Firebase Client SDK Key | `AIzaSy...` |
+| `EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN` | Firebase Auth Domain | `project.firebaseapp.com` |
+| `EXPO_PUBLIC_FIREBASE_PROJECT_ID` | Firebase Project ID | `my-notification-app` |
+| `EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET`| Storage Bucket (Optional) | `project.appspot.com` |
+| `EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | FCM Sender ID | `123456789` |
+| `EXPO_PUBLIC_FIREBASE_APP_ID` | Firebase App ID | `1:123456789:web:abc...` |
+
+## 🔌 API Contract (Backend Integration)
+
+The app communicates with a standard REST API. Below is the expected contract:
+
+### Authentication & Device
+| Method | Endpoint | Body | Description |
+|--------|----------|------|-------------|
+| `POST` | `/auth/sync-token` | `{ fcmToken: string }` | Syncs FCM push token for the current user. |
+
+### Notifications
+| Method | Endpoint | Body | Description |
+|--------|----------|------|-------------|
+| `GET` | `/notifications` | - | Fetches user's notification history. |
+| `POST` | `/notifications/send` | `{ to: 'self', title, body, data }` | Triggers a real push notification via Backend Admin SDK. |
+| `POST` | `/notifications` | `{ ..., status: 'DRAFT' }` | Saves a notification as a draft (Database only). |
+
+## 🔮 Future Roadmap & Refactors
+
+As the project evolves towards a production-grade enterprise application, the following refactors are planned:
+
+### 🌍 Internalization (i18n)
+- **Current**: Hardcoded English strings.
+- **Plan**: Implement `i18next` or `expo-localization`. All user-facing strings will be moved to `en.json`, `tr.json`, etc. to support global audiences.
+
+### 🌗 Dynamic Theming (Dark Mode)
+- **Current**: System preference detection (static).
+- **Plan**: Implement a Context-based Theme Provider allowing users to toggle Light/Dark mode manually in settings, persisting the choice.
+
+### 🛡️ Backend-Driven Error Handling
+- **Current**: Generic "Failed to send" messages or basic error mapping.
+- **Plan**: Standardize API error responses (e.g., `{ code: 'auth/weak-password', message: '...' }`). Map these codes to localized, user-friendly messages on the client side.
+
+### 🧩 Additional Technical debt & Features
+- **E2E Testing**: Integrate **Maestro** or **Detox** for critical flow (Login -> Send Notification) automation.
+- **CI/CD**: Setup GitHub Actions for auto-building .apk/.ipa artifacts on PR merge.
+- **Accessibility (a11y)**: Audit screens for Screen Reader compatibility (VoiceOver/TalkBack).
+- **Socket.io**: Implement Bi-directional communication for "read receipts" or live typing indicators.
+
 ## 🤝 Contributing
 
 1. Fork the Project
