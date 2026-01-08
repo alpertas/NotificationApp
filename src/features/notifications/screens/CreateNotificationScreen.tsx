@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TextInput as RNTextInput } from 'react-native';
-import { Button, Text, IconButton, useTheme, HelperText } from 'react-native-paper';
+import { Button, Text, IconButton, HelperText } from 'react-native-paper';
 import { useToast } from '../../../core/hooks/useToast';
 import { notificationService } from '../services/notificationService';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,6 +8,9 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createNotificationSchema, CreateNotificationFormData } from '../notificationTypes';
 import * as Notifications from 'expo-notifications';
+import { theme, spacing } from '../../../core/theme';
+import { GlobalLoader } from '../../../core/components/GlobalLoader';
+import { useNetworkStatus } from '../../../core/hooks/useNetworkStatus';
 
 // Reusable Custom Input Component with External Label
 const CustomLabeledInput = ({
@@ -47,7 +50,7 @@ const CustomLabeledInput = ({
           onFocus={handleFocus}
           onBlur={handleBlur}
           placeholder={placeholder}
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={theme.colors.textSecondary}
           style={[
             styles.nativeInput,
             multiline && { textAlignVertical: 'top', paddingTop: 12 }
@@ -61,12 +64,10 @@ const CustomLabeledInput = ({
   );
 };
 
-import { GlobalLoader } from '../../../core/components/GlobalLoader';
-
 export const CreateNotificationScreen = ({ navigation }: any) => {
   const [loading, setLoading] = useState(false);
-  const theme = useTheme();
   const { showToast } = useToast();
+  const { isConnected } = useNetworkStatus();
 
   const { control, handleSubmit, formState: { errors }, watch, getValues } = useForm<CreateNotificationFormData>({
     resolver: zodResolver(createNotificationSchema),
@@ -80,6 +81,11 @@ export const CreateNotificationScreen = ({ navigation }: any) => {
   const bodyValue = watch('body');
 
   const onSubmit = async (data: CreateNotificationFormData) => {
+    if (isConnected === false) {
+      showToast('No internet connection', 'error');
+      return;
+    }
+
     setLoading(true);
     try {
       await notificationService.createNotification({
@@ -120,6 +126,11 @@ export const CreateNotificationScreen = ({ navigation }: any) => {
   };
 
   const handleSaveDraft = async () => {
+    if (isConnected === false) {
+      showToast('Cannot save draft while offline', 'error');
+      return;
+    }
+
     const data = getValues();
     if (!data.title || !data.body) {
       showToast('Please enter title and body to save draft', 'info');
@@ -232,13 +243,13 @@ export const CreateNotificationScreen = ({ navigation }: any) => {
               </View>
 
               {/* Action Buttons */}
-              <View style={{ gap: 12 }}>
+              <View style={{ gap: spacing.s + 4 }}>
                 <Button
                   mode="outlined"
                   onPress={handleTestNotification}
                   disabled={loading}
                   style={styles.testButton}
-                  textColor="#FF8F00"
+                  textColor={theme.colors.primary}
                   icon="bell-ring-outline"
                 >
                   TEST LOCAL NOTIFICATION
@@ -247,9 +258,9 @@ export const CreateNotificationScreen = ({ navigation }: any) => {
                 <Button
                   mode="outlined"
                   onPress={handleSaveDraft}
-                  disabled={loading}
-                  style={styles.draftButton}
-                  textColor="#757575"
+                  disabled={loading || isConnected === false}
+                  style={[styles.draftButton, isConnected === false && styles.disabledButton]}
+                  textColor={isConnected === false ? theme.colors.disabled : theme.colors.textSecondary}
                   icon="content-save-outline"
                 >
                   SAVE AS DRAFT
@@ -258,8 +269,8 @@ export const CreateNotificationScreen = ({ navigation }: any) => {
                 <Button
                   mode="contained"
                   onPress={handleSubmit(onSubmit)}
-                  disabled={loading}
-                  style={styles.button}
+                  disabled={loading || isConnected === false}
+                  style={[styles.button, isConnected === false && styles.disabledButton]}
                   contentStyle={styles.buttonContent}
                   labelStyle={styles.buttonLabel}
                 >
@@ -279,7 +290,7 @@ export const CreateNotificationScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F9FC',
+    backgroundColor: theme.colors.background,
   },
   scrollContent: {
     flexGrow: 1,
@@ -288,38 +299,39 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    marginBottom: 8,
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.m,
+    marginBottom: spacing.s,
   },
   backButton: {
-    marginRight: 8,
-    marginLeft: -8,
+    marginRight: spacing.s,
+    marginLeft: -spacing.s,
   },
   headerTitle: {
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: theme.colors.textPrimary,
   },
   headerSubtitle: {
-    color: '#6B7280',
+    color: theme.colors.textSecondary,
   },
   formContainer: {
-    paddingHorizontal: 24,
+    paddingHorizontal: spacing.l,
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.surface,
     borderRadius: 16,
-    padding: 24,
-    // Soft Shadow
+    padding: spacing.l,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: theme.colors.backdrop, // Using backdrop or black
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
-    marginBottom: 24,
+    marginBottom: spacing.l,
+    borderWidth: 1,
+    borderColor: theme.palette.grey200,
   },
   inputContainer: {
-    marginBottom: 20, // Increased spacing between groups
+    marginBottom: spacing.l,
   },
   inputWrapper: {
     // Wrapper around label and input box
@@ -327,34 +339,34 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#424242',
-    marginBottom: 6, // 4-6px spacing
+    color: theme.colors.textPrimary,
+    marginBottom: 6,
     marginLeft: 2,
   },
   inputBox: {
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: theme.palette.grey300,
     borderRadius: 12,
-    backgroundColor: '#F5F5F5', // Light grey bg
-    paddingHorizontal: 16,
-    minHeight: 56, // Standard touch target
+    backgroundColor: theme.colors.background, // Or surface if card is surface
+    paddingHorizontal: spacing.m,
+    minHeight: 56,
     justifyContent: 'center',
   },
   inputBoxFocused: {
-    borderColor: '#FFA000',
-    backgroundColor: '#FFFFFF', // Optional: white on focus
+    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.background,
     borderWidth: 1.5,
   },
   inputBoxError: {
-    borderColor: '#D32F2F',
+    borderColor: theme.colors.error,
   },
   inputBoxDisabled: {
-    backgroundColor: '#EEEEEE',
+    backgroundColor: theme.palette.grey200,
     opacity: 0.7,
   },
   nativeInput: {
     fontSize: 16,
-    color: '#212121',
+    color: theme.colors.textPrimary,
     flex: 1,
   },
   inputFooter: {
@@ -365,7 +377,7 @@ const styles = StyleSheet.create({
     minHeight: 20,
   },
   errorText: {
-    color: '#D32F2F',
+    color: theme.colors.error,
     fontSize: 12,
     paddingHorizontal: 0,
     marginTop: 0,
@@ -373,31 +385,31 @@ const styles = StyleSheet.create({
   },
   charCount: {
     fontSize: 12,
-    color: '#9E9E9E',
+    color: theme.colors.textSecondary,
     marginTop: 4,
     marginLeft: 8,
   },
   charCountError: {
-    color: '#D32F2F',
+    color: theme.colors.error,
   },
   button: {
     borderRadius: 12,
     elevation: 4,
-    shadowColor: '#FFA000',
+    shadowColor: theme.colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
-    backgroundColor: '#FFA000', 
+    backgroundColor: theme.colors.primary,
   },
   testButton: {
     borderRadius: 12,
-    borderColor: '#FFA000',
+    borderColor: theme.colors.primary,
     borderWidth: 1,
   },
   draftButton: {
     borderRadius: 12,
-    borderColor: '#E0E0E0',
-    backgroundColor: '#FAFAFA',
+    borderColor: theme.palette.grey300,
+    backgroundColor: theme.palette.grey100,
     borderWidth: 1,
   },
   buttonContent: {
@@ -407,6 +419,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     letterSpacing: 1.2,
-    color: '#FFFFFF',
+    color: theme.colors.onPrimary,
+  },
+  disabledButton: {
+    backgroundColor: theme.colors.disabled,
+    borderColor: theme.colors.disabled,
   },
 });

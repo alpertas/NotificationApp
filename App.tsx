@@ -6,6 +6,7 @@ import { Navigation } from './src/app/Navigation';
 import { theme } from './src/core/theme';
 import { usePushNotification } from './src/features/notifications/hooks/usePushNotification';
 import { ToastProvider } from './src/core/providers/ToastProvider';
+import { OfflineBanner } from './src/core/components/OfflineBanner';
 
 // Component to handle global hook logic
 const AppContent = () => {
@@ -20,6 +21,7 @@ export default function App() {
     <SafeAreaProvider>
       <PaperProvider theme={theme}>
         <ToastProvider>
+          <OfflineBanner />
           <AppContent />
         </ToastProvider>
         <StatusBar style="auto" />
