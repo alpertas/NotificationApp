@@ -1,93 +1,25 @@
-import React, { useCallback, useState } from 'react';
-import { View, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useCallback } from 'react';
+import { View, FlatList, TouchableOpacity } from 'react-native';
 import { Text, FAB, IconButton } from 'react-native-paper';
-import { notificationService } from '../services/notificationService';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuthStore } from '../../auth/store/useAuthStore';
-import { useFocusEffect } from '@react-navigation/native';
-import { useToast } from '../../../core/hooks/useToast';
 import { formatRelativeTime } from '../../../core/utils/dateFormatter';
 import { NotificationSkeleton } from '../components/NotificationSkeleton';
-import { theme, spacing } from '../../../core/theme';
+import { theme } from '../../../core/theme';
 import { listStyles as styles } from '../notification.styles';
+import { useNotifications, NotificationItem } from '../hooks/useNotifications';
 
-// Enhanced Notification Type
-interface NotificationItem {
-  id: string;
-  title: string;
-  body: string;
-  createdAt: string;
-  deliveryStatus: 'PENDING' | 'SENT' | 'FAILED' | 'DRAFT';
-}
-
-const getStatusColor = (status: NotificationItem['deliveryStatus']) => {
-  switch (status) {
-    case 'SENT': return theme.colors.success; // Green (Success)
-    case 'FAILED': return theme.colors.error; // Red (Error)
-    case 'PENDING': return theme.colors.primary; // Orange (Primary)
-    case 'DRAFT': return theme.colors.textSecondary; // Grey
-    default: return theme.colors.textSecondary;
-  }
-};
-
-const getStatusIcon = (status: NotificationItem['deliveryStatus']) => {
-  switch (status) {
-    case 'SENT': return 'check-circle-outline';
-    case 'FAILED': return 'alert-circle-outline';
-    case 'PENDING': return 'clock-outline';
-    case 'DRAFT': return 'content-save-outline';
-    default: return 'bell-outline';
-  }
-};
-
-export const NotificationListScreen = ({ navigation }: any) => {
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const { logout, isAuthenticated } = useAuthStore();
-  const { showToast } = useToast();
-
-  const fetchNotifications = useCallback(async (isManual = false) => {
-    const token = useAuthStore.getState().token;
-    if (!token) return;
-
-    if (isManual) setRefreshing(true);
-    else setLoading(true);
-
-    try {
-      const data = await notificationService.getNotifications();
-      // Ensure data maps to our new interface if backend doesn't provide status yet, default to SENT or PENDING
-      const mappedData = Array.isArray(data) ? data.map((item: any) => {
-        // Determine status from various possible fields
-        const rawStatus = item.deliveryStatus || item.status || item.data?.status || 'SENT';
-
-        return {
-          ...item,
-          deliveryStatus: rawStatus.toUpperCase(),
-          createdAt: item.createdAt || item.timestamp || new Date().toISOString()
-        };
-      }) : [];
-      // Sort by createdAt descending (newest first)
-      mappedData.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-      setNotifications(mappedData);
-    } catch (error) {
-      console.log('Error fetching notifications', error);
-      showToast('Failed to refresh notifications', 'error');
-      setNotifications([]);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (isAuthenticated) {
-        fetchNotifications();
-      }
-    }, [isAuthenticated, fetchNotifications])
-  );
+export const NotificationListScreen = () => {
+  const {
+    notifications,
+    loading,
+    refreshing,
+    handleRefresh,
+    logout,
+    handleNotificationPress,
+    handleCreateNotification,
+    getStatusColor,
+    getStatusIcon
+  } = useNotifications();
 
   const renderItem = ({ item }: { item: NotificationItem }) => {
     const statusColor = getStatusColor(item.deliveryStatus);
@@ -96,15 +28,7 @@ export const NotificationListScreen = ({ navigation }: any) => {
     return (
       <TouchableOpacity
         style={[styles.cardContainer, { borderLeftColor: statusColor, borderLeftWidth: 4 }]}
-        onPress={() => {
-          console.log(`[NotificationList] Clicked item: ${item.id}, Status: ${item.deliveryStatus}`);
-          // Allow editing Drafts and Pending (stuck) notifications
-          if (item.deliveryStatus === 'DRAFT' || item.deliveryStatus === 'PENDING') {
-            navigation.navigate('CreateNotification', {
-              initialData: { title: item.title, body: item.body }
-            });
-          }
-        }}
+        onPress={() => handleNotificationPress(item)}
         activeOpacity={0.7}
       >
         <View style={[styles.cardIconContainer, { backgroundColor: statusColor + '20' }]}>
@@ -155,7 +79,7 @@ export const NotificationListScreen = ({ navigation }: any) => {
               </View>
             }
             refreshing={refreshing}
-            onRefresh={() => fetchNotifications(true)}
+            onRefresh={handleRefresh}
             showsVerticalScrollIndicator={false}
         />
       )}
@@ -163,7 +87,7 @@ export const NotificationListScreen = ({ navigation }: any) => {
       <FAB
         icon="plus"
         style={styles.fab}
-        onPress={() => navigation.navigate('CreateNotification')}
+        onPress={handleCreateNotification}
         label="New"
         color="white"
         theme={{ colors: { primaryContainer: theme.colors.primary } }}
@@ -171,4 +95,3 @@ export const NotificationListScreen = ({ navigation }: any) => {
     </SafeAreaView>
   );
 };
-

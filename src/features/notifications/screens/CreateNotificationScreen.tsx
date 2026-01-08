@@ -1,125 +1,32 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, ScrollView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { Button, Text, HelperText } from 'react-native-paper';
-import { useToast } from '../../../core/hooks/useToast';
-import { notificationService } from '../services/notificationService';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { createNotificationSchema, CreateNotificationFormData } from '../notificationTypes';
-import * as Notifications from 'expo-notifications';
+import { Controller } from 'react-hook-form';
 import { theme, spacing } from '../../../core/theme';
 import { GlobalLoader } from '../../../core/components/GlobalLoader';
-import { useNetworkStatus } from '../../../core/hooks/useNetworkStatus';
 import { createStyles as styles } from '../notification.styles';
 import { CreateNotificationHeader } from '../components/CreateNotificationHeader';
 import { CustomLabeledInput } from '../components/CustomLabeledInput';
+import { useCreateNotification } from '../hooks/useCreateNotification';
 
-import { CreateNotificationProps } from '../../../core/navigation/types';
-
-export const CreateNotificationScreen = ({ navigation, route }: CreateNotificationProps) => {
-  const [loading, setLoading] = useState(false);
-  const { showToast } = useToast();
-  const { isConnected } = useNetworkStatus();
-
-  // Get initialData from route params if available
-  const initialData = route.params?.initialData;
-
-  const { control, handleSubmit, formState: { errors }, watch, getValues, reset } = useForm<CreateNotificationFormData>({
-    resolver: zodResolver(createNotificationSchema),
-    defaultValues: {
-      title: initialData?.title || '',
-      body: initialData?.body || ''
-    }
-  });
-
-  // Populate form if initialData exists (e.g. re-opening a draft)
-  React.useEffect(() => {
-    if (initialData) {
-      reset({
-        title: initialData.title,
-        body: initialData.body
-      });
-    }
-  }, [initialData, reset]);
+export const CreateNotificationScreen = () => {
+  const {
+    control,
+    handleSubmit,
+    errors,
+    watch,
+    loading,
+    isConnected,
+    initialData,
+    onSubmit,
+    handleTestNotification,
+    handleSaveDraft,
+    goBack
+  } = useCreateNotification();
 
   const titleValue = watch('title');
   const bodyValue = watch('body');
-
-  const onSubmit = async (data: CreateNotificationFormData) => {
-    if (isConnected === false) {
-      showToast('No internet connection', 'error');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await notificationService.createNotification({
-        to: 'self',
-        title: data.title,
-        body: data.body,
-        data: { screen: 'NotificationList' }
-      });
-      showToast('Push Sent: ' + data.title, 'success');
-      navigation.goBack();
-    } catch (error) {
-      showToast('Failed to send notification', 'error');
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleTestNotification = async () => {
-    const title = getValues('title');
-    const body = getValues('body');
-
-    if (!title || !body) {
-      showToast('Please enter title and message to test', 'info');
-      return;
-    }
-
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title,
-        body,
-        data: { test: true },
-      },
-      trigger: null, // Immediate
-    });
-
-    showToast('Local Notification Scheduled', 'success');
-  };
-
-  const handleSaveDraft = async () => {
-    if (isConnected === false) {
-      showToast('Cannot save draft while offline', 'error');
-      return;
-    }
-
-    const data = getValues();
-    if (!data.title || !data.body) {
-      showToast('Please enter title and body to save draft', 'info');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await notificationService.saveAsDraft({
-        to: 'self',
-        title: data.title,
-        body: data.body,
-        data: { screen: 'NotificationList', status: 'DRAFT' }
-      });
-      showToast('Saved to drafts', 'info');
-      navigation.goBack();
-    } catch (error) {
-      showToast('Failed to save draft', 'error');
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -132,7 +39,7 @@ export const CreateNotificationScreen = ({ navigation, route }: CreateNotificati
           <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
 
             <CreateNotificationHeader
-              onBack={() => navigation.goBack()}
+              onBack={goBack}
               title={initialData ? "Edit Draft" : "New Notification"}
             />
 
